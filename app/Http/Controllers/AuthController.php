@@ -1,0 +1,92 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
+
+class AuthController extends Controller
+{
+    public function login(Request $request)
+    {
+
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|exists:user',
+            'password' => 'required'
+        ], [
+            'email.required' => 'Email tidak boleh kosong',
+            'email.email' => 'Email tidak valid',
+            'email.exists' => 'Email tidak terdaftar',
+            'password.required' => 'Password tidak boleh kosong'
+        ]);
+
+        if($validator->fails()) {
+            return response()->json([
+                'message' => "validasi gagal",
+                'errors' => $validator->errors()
+            ], 422, ['Content-Type' => 'application/json']);
+        }
+
+        $user = User::where('email', $request->email)->first();
+
+        if(!Hash::check($request->password, $user->password)) {
+            return response()->json([
+                'message' => 'Password salah'
+            ], 422);
+        }
+
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return response()->json([
+            'message' => 'Login berhasil',
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+        ], 200);
+    }
+
+    public function register(Request $request) {
+        $request->validate([
+            'nama' => 'required',
+            'email' => 'required|email|unique:user',
+            'password' => 'required',
+            'no_telp' => 'required',
+        ],[
+            'nama.required' => 'Nama tidak boleh kosong',
+            'email.required' => 'Email tidak boleh kosong',
+            'email.email' => 'Email tidak valid',
+            'email.unique' => 'Email sudah terdaftar',
+        ]);
+
+        $user = User::create([
+            'nama' => $request->nama,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'no_telp' => $request->no_telp,
+        ]);
+
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return response()->json([
+            'message' => 'Register berhasil',
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+        ]);
+    }
+
+    public function updateAllPassword(Request $request) {
+        $password = Hash::make($request->password);
+
+        User::each(function ($user) use ($password) {
+            $user->update([
+                'password' => $password
+            ]);
+        });
+
+        return response()->json([
+            'message' => 'Password berhasil diubah'
+        ]);
+
+    }
+}
