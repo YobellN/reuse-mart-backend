@@ -21,6 +21,10 @@ class Pegawai extends Model
 
     public $timestamps = false;
 
+    protected $casts = [
+        'id_pegawai' => 'string'
+    ];
+
     public function user() {
         return $this->belongsTo(User::class, 'id_user');
     }

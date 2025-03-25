@@ -23,9 +23,12 @@ class User extends Authenticatable
         'role', 
         'fcm_token'
     ];
+    
 
     protected $hidden = [
+        'id_user',
         'password', 
+        'role',
     ];
 
     public $timestamps = false;

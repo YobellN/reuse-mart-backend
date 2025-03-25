@@ -57,6 +57,8 @@ class AuthController extends Controller
             'no_telp' => 'required',
         ],[
             'nama.required' => 'Nama tidak boleh kosong',
+            'password.required' => 'Password tidak boleh kosong',
+            'no_telp.required' => 'Nomor telepon tidak boleh kosong',
             'email.required' => 'Email tidak boleh kosong',
             'email.email' => 'Email tidak valid',
             'email.unique' => 'Email sudah terdaftar',
@@ -72,9 +74,11 @@ class AuthController extends Controller
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
-            'message' => 'Register berhasil',
-            'access_token' => $token,
-            'token_type' => 'Bearer',
+            'message' => 'Berhasil daftar',
+            'data' => [
+                'user' => $user,
+                'access_token' => $token
+            ],
         ]);
     }
 

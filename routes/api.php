@@ -15,9 +15,11 @@ Route::post('/login', [AuthController::class, 'login']);
 
 Route::post('/register', [AuthController::class, 'register']);
 
-Route::group(['middleware' => ['auth:sanctum', 'admin']], function () {
-    Route::resource('pegawai', PegawaiController::class);
-});
+Route::resource('pegawai', PegawaiController::class);
+
+// Route::group(['middleware' => ['auth:sanctum', 'admin']], function () {
+//     Route::resource('pegawai', PegawaiController::class);
+// });
 
 Route::group(['middleware' => ['auth:sanctum', 'cs']], function () {
     Route::resource('penitip', PenitipController::class);
