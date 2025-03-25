@@ -33,16 +33,19 @@ class AuthController extends Controller
 
         if(!Hash::check($request->password, $user->password)) {
             return response()->json([
-                'message' => 'Password salah'
+                'message' => 'validasi gagal',
+                'errors' => ['password'=> 'password salah']
             ], 422);
         }
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
-            'message' => 'Login berhasil',
-            'access_token' => $token,
-            'token_type' => 'Bearer',
+            'message' => 'Berhasil login',
+            'data' => [
+                'user' => $user,
+                'access_token' => $token
+            ],
         ], 200);
     }
 
