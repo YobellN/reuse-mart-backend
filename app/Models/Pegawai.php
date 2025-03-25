@@ -19,4 +19,13 @@ class Pegawai extends Model
         'komisi',
     ];
 
+    public $timestamps = false;
+
+    public function user() {
+        return $this->belongsTo(User::class, 'id_user');
+    }
+
+    public function jabatan() {
+        return $this->belongsTo(Jabatan::class, 'id_jabatan');
+    }
 }
