@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Pegawai;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -22,7 +23,7 @@ class AuthController extends Controller
             'password.required' => 'Password tidak boleh kosong'
         ]);
 
-        if($validator->fails()) {
+        if ($validator->fails()) {
             return response()->json([
                 'message' => "validasi gagal",
                 'errors' => $validator->errors()
@@ -31,10 +32,10 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
-        if(!Hash::check($request->password, $user->password)) {
+        if (!Hash::check($request->password, $user->password)) {
             return response()->json([
                 'message' => 'validasi gagal',
-                'errors' => ['password'=> 'password salah']
+                'errors' => ['password' => 'password salah']
             ], 422);
         }
 
@@ -49,13 +50,14 @@ class AuthController extends Controller
         ], 200);
     }
 
-    public function register(Request $request) {
+    public function register(Request $request)
+    {
         $request->validate([
             'nama' => 'required',
             'email' => 'required|email|unique:user',
             'password' => 'required',
             'no_telp' => 'required',
-        ],[
+        ], [
             'nama.required' => 'Nama tidak boleh kosong',
             'password.required' => 'Password tidak boleh kosong',
             'no_telp.required' => 'Nomor telepon tidak boleh kosong',
@@ -69,6 +71,7 @@ class AuthController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'no_telp' => $request->no_telp,
+            'role' => 'Pembeli',
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
@@ -82,7 +85,50 @@ class AuthController extends Controller
         ]);
     }
 
-    public function updateAllPassword(Request $request) {
+    public function getUser(Request $request)
+    {
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'User tidak ditemukan'
+            ], 404);
+        }
+
+        if ($user->role == 'Admin' || $user->role == 'Hunter' || $user->role == 'CS' || $user->role == 'Kurir' || $user->role == 'Gudang' || $user->role == 'Owner') {
+            $user = User::with('pegawai')->find($user->id_user);
+            return response()->json([
+                'message' => 'Data user',
+                'data' => $user
+            ]);
+        } else if ($user->role == 'Pembeli') {
+            $user = User::with('pembeli')->find($user->id_user);
+            return response()->json([
+                'message' => 'Data user',
+                'data' => $user
+            ]);
+        } else if ($user->role == 'Penitip') {
+            $user = User::with('penitip')->find($user->id_user);
+            return response()->json([
+                'message' => 'Data user',
+                'data' => $user
+            ]);
+        } else if ($user->role == 'Organisasi') {
+            $user = User::with('organisasi')->find($user->id_user);
+            return response()->json([
+                'message' => 'Data user',
+                'data' => $user
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Data user',
+            'data' => $user
+        ], 200);
+    }
+
+    public function updateAllPassword(Request $request)
+    {
         $password = Hash::make($request->password);
 
         User::each(function ($user) use ($password) {
@@ -94,6 +140,5 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Password berhasil diubah'
         ]);
-
     }
 }

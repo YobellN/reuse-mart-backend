@@ -18,4 +18,11 @@ class Penitip extends Model
         'saldo',
         'poin',
     ];
+
+    public $timestamps = false;
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'id_user');
+    }
 }
