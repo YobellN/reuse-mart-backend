@@ -28,8 +28,24 @@ class User extends Authenticatable
     protected $hidden = [
         'id_user',
         'password', 
-        'role',
     ];
 
     public $timestamps = false;
+    
+
+    public function penitip() {
+        return $this->hasOne(Penitip::class, 'id_user');
+    }
+
+    public function pegawai() {
+        return $this->hasOne(Pegawai::class, 'id_user');
+    }
+
+    public function pembeli() {
+        return $this->hasOne(Pembeli::class, 'id_user');
+    }
+
+    public function organisasi() {
+        return $this->hasOne(Organisasi::class, 'id_user');
+    }
 }
