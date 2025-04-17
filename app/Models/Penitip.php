@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Omaressaouaf\LaravelIdGenerator\IdGenerator;
 
 class Penitip extends Model
 {
@@ -20,6 +21,20 @@ class Penitip extends Model
     ];
 
     public $timestamps = false;
+
+    public $incrementing = false;
+
+    public $casts = [
+        'saldo' => 'float'
+    ];
+
+    public static function boot()
+    {
+        parent::boot();
+        self::creating(function ($model) {
+            $model->id_penitip = IdGenerator::generate(Penitip::class, 'id_penitip', 4, 'T');
+        });
+    }
 
     public function user()
     {
