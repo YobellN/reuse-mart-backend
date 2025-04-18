@@ -16,7 +16,7 @@ class PenitipController
      */
     public function index()
     {
-        $penitip = Penitip::all();
+        $penitip = Penitip::with('user')->get();
 
         return response()->json([
             'message' => 'Data Penitip',
@@ -100,7 +100,19 @@ class PenitipController
      */
     public function show(string $id)
     {
-        //
+        $penitip = Penitip::with('user')->find($id);
+
+        if (!$penitip) {
+            return response()->json([
+                'message' => 'Penitip tidak ditemukan',
+                'errors' => ['id' => 'Penitip tidak ditemukan'],
+            ], 404);
+        }
+
+        return response()->json([
+            'message' => 'Data Penitip',
+            'data' => $penitip
+        ]);
     }
 
     /**
