@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Pegawai;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
-class AuthController extends Controller
+class AuthController 
 {
     public function login(Request $request)
     {
@@ -53,14 +52,17 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $request->validate([
-            'nama' => 'required',
+            'nama' => 'required|string|min:3',
             'email' => 'required|email|unique:user',
-            'password' => 'required',
-            'no_telp' => 'required',
+            'password' => 'required|min:8',
+            'no_telp' => 'required|regex:/^[0-9]{10,15}$/',
         ], [
             'nama.required' => 'Nama tidak boleh kosong',
+            'nama.min' => 'Nama minimal 3 karakter',
             'password.required' => 'Password tidak boleh kosong',
+            'password.min' => 'Password minimal 8 karakter',
             'no_telp.required' => 'Nomor telepon tidak boleh kosong',
+            'no_telp.regex' => 'Nomor telepon tidak valid',
             'email.required' => 'Email tidak boleh kosong',
             'email.email' => 'Email tidak valid',
             'email.unique' => 'Email sudah terdaftar',
