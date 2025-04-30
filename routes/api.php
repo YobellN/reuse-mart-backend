@@ -6,7 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\JabatanController;
 use App\Http\Controllers\PegawaiController;
 use App\Http\Controllers\PenitipController;
-use App\Http\Controllers\ResetPasswordController;
+use App\Http\Controllers\PenjualanController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -24,7 +24,7 @@ Route::post('/register', [AuthController::class, 'register']);
     
 // });
 
-Route::group(['middleware' => ['auth:sanctum', 'check.roles:admin']], function () {
+Route::group(['middleware' => ['auth:sanctum', 'admin']], function () {
     Route::resource('pegawai', PegawaiController::class);
     Route::resource('jabatan', JabatanController::class);
 });
@@ -34,8 +34,11 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/getUser', [AuthController::class, 'getUser']);
 });
 
-Route::group(['middleware' => ['auth:sanctum', 'check.roles:cs']], function () {
+Route::group(['middleware' => ['auth:sanctum', 'cs']], function () {
     Route::resource('penitip', PenitipController::class);
 });
 
 
+Route::group(['middleware' => ['auth:sanctum', 'pembeli']], function () {
+    Route::resource('penjualan', PenjualanController::class);
+});

@@ -14,7 +14,7 @@ class PenitipController
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         $penitip = Penitip::with('user')->get();
 
