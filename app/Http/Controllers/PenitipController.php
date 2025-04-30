@@ -144,13 +144,13 @@ class PenitipController
             'email' => [
                 'sometimes',
                 'email',
-                Rule::unique('user', 'email')->ignore($user->id_user)
+                Rule::unique('user', 'email')->ignore($user->id_user, 'id_user')
             ],
             'password' => 'sometimes|min:8',
             'no_telp' => 'sometimes|regex:/^[0-9]{10,15}$/',
             'nik' => [
                 'sometimes',
-                Rule::unique('penitip', 'nik')->ignore($penitip->nik)
+                Rule::unique('penitip', 'nik')->ignore($penitip->nik, 'nik')
             ],
             'foto_ktp' => 'sometimes|image|mimes:jpeg,png,jpg,gif,svg,webp',
         ], [
@@ -177,7 +177,7 @@ class PenitipController
             }
 
             $file = $request->file('foto_ktp');
-            $filename = $request->nik ?? $penitip->nik . '_' . time() . '.' . $file->getClientOriginalExtension();
+            $filename = ($request->nik ?? $penitip->nik) . '_' . time() . '.' . $file->getClientOriginalExtension();
             $file->storeAs('foto_ktp', $filename, 'public');
 
             $penitip->foto_ktp = $filename;
