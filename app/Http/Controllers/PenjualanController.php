@@ -20,7 +20,7 @@ class PenjualanController
         $pembeli = $user->pembeli;
         $query = Penjualan::with([
             'detail.produk.kategori',
-            'pengiriman',
+            'pengiriman.alamat',
             'pembayaran',
         ])->where('id_pembeli', $pembeli->id_pembeli);
 
@@ -38,7 +38,7 @@ class PenjualanController
 
         return response()->json([
             'message' => 'Riwayat Penjualan',
-            'data' => $penjualans
+            'data' => $penjualans,
         ]);
     }
 

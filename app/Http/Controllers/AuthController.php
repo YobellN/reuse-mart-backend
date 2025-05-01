@@ -97,7 +97,7 @@ class AuthController
             ], 404);
         }
 
-        if ($user->role == 'Admin' || $user->role == 'Hunter' || $user->role == 'CS' || $user->role == 'Kurir' || $user->role == 'Gudang' || $user->role == 'Owner' || $user->role == 'Pegawai' || $user->role == 'Pembeli') {
+        if ($user->role == 'Admin' || $user->role == 'Hunter' || $user->role == 'CS' || $user->role == 'Kurir' || $user->role == 'Gudang' || $user->role == 'Owner' || $user->role == 'Pegawai') {
             $user = User::with('pegawai')->find($user->id_user);
             return response()->json([
                 'message' => 'Data user',
