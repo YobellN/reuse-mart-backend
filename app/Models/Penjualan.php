@@ -29,6 +29,19 @@ class Penjualan extends Model
         'status',
     ];
 
+    protected $casts = [
+        'id_penjualan' => 'string',
+        'id_pembeli' => 'string',
+        'tanggal_penjualan' => 'datetime',
+        'jadwal_pengambilan' => 'datetime',
+        'total_ongkir' => 'float',
+        'poin_potongan' => 'integer',
+        'total_harga' => 'float',
+        'poin_perolehan' => 'integer',
+        'total_poin' => 'integer',
+        'tenggat_pembayaran' => 'datetime',
+    ];
+
     public function pengiriman() 
     {
         return $this->hasOne(Pengiriman::class, 'id_penjualan', 'id_penjualan');

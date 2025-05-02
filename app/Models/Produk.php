@@ -26,6 +26,17 @@ class Produk extends Model
         'rating'
     ];
 
+    protected $casts = [
+        'id_produk' => 'string',
+        'id_kategori' => 'string',
+        'harga_produk' => 'float',
+        'status_akhir_produk' => 'boolean',
+        'status_ketersediaan' => 'boolean',
+        'status_garansi' => 'boolean',
+        'status_produk_hunting' => 'boolean',
+        'rating' => 'integer',
+    ];
+
     public function kategori()
     {
         return $this->belongsTo(KategoriProduk::class, 'id_kategori', 'id_kategori');
