@@ -19,6 +19,7 @@ class PenjualanController
         $user->role == 'Pembeli';
         $pembeli = $user->pembeli;
         $query = Penjualan::with([
+            'pembeli.user',
             'detail.produk.kategori',
             'pengiriman.alamat',
             'pembayaran',
