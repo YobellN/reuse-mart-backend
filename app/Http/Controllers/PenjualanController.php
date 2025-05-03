@@ -14,24 +14,23 @@ class PenjualanController
     {
 
         $user = $request->user();
-        $status_penjualan = $request->query('status_penjualan') ?? null;
+        $status_penjualan = $request->query('status_penjualan');
 
-        $user->role == 'Pembeli';
-        $pembeli = $user->pembeli;
-        $query = Penjualan::with([
+        if ($user->role !== 'Pembeli') {
+            return response()->json([
+                'message' => 'Akses ditolak: hanya role Pembeli yang diperbolehkan',
+            ], 403);
+        }
+
+        $id_pembeli = $user->pembeli->id_pembeli;
+        $penjualan = Penjualan::with([
             'pembeli.user',
             'detail.produk.kategori',
             'pengiriman.alamat',
             'pembayaran',
-        ])->where('id_pembeli', $pembeli->id_pembeli);
+        ])->where('id_pembeli', $id_pembeli)->when($status_penjualan, fn($q) => $q->where('status_penjualan', $status_penjualan))->orderBy('tanggal_penjualan', 'desc')->get();
 
-        if ($status_penjualan) {
-            $query->where('status_penjualan', $status_penjualan);
-        }
-
-        $penjualans = $query->orderBy('tanggal_penjualan', 'desc')->get();
-
-        if ($penjualans->isEmpty()) {
+        if ($penjualan->isEmpty()) {
             return response()->json([
                 'message' => 'Tidak ada data penjualan',
             ], 404);
@@ -39,7 +38,7 @@ class PenjualanController
 
         return response()->json([
             'message' => 'Riwayat Penjualan',
-            'data' => $penjualans,
+            'data' => $penjualan,
         ]);
     }
 

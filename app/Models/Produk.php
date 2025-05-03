@@ -30,7 +30,8 @@ class Produk extends Model
         'id_produk' => 'string',
         'id_kategori' => 'string',
         'harga_produk' => 'float',
-        'status_akhir_produk' => 'boolean',
+        'deskripsi_produk' => 'string',
+        'status_akhir_produk' => 'string',
         'status_ketersediaan' => 'boolean',
         'status_garansi' => 'boolean',
         'status_produk_hunting' => 'boolean',
@@ -45,6 +46,11 @@ class Produk extends Model
     public function detailPenjualan()
     {
         return $this->hasMany(DetailPenjualan::class, 'id_produk', 'id_produk');
+    }
+
+    public function detailPenitipan()
+    {
+        return $this->hasMany(DetailPenitipan::class, 'id_produk', 'id_produk');
     }
     
 }

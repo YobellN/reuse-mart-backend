@@ -3,9 +3,11 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ProdukController;
 use App\Http\Controllers\JabatanController;
 use App\Http\Controllers\PegawaiController;
 use App\Http\Controllers\PenitipController;
+use App\Http\Controllers\PenitipanController;
 use App\Http\Controllers\PenjualanController;
 
 Route::get('/user', function (Request $request) {
@@ -21,7 +23,7 @@ Route::post('/register', [AuthController::class, 'register']);
 
 // Route::group(['middleware' => ['auth:sanctum', 'check.roles:penitip,pembeli,organisasi']], function () {
 //     Route::post('/forgot-password', [ResetPasswordController::class, 'passwordEmail']);
-    
+
 // });
 
 Route::group(['middleware' => ['auth:sanctum', 'admin']], function () {
@@ -41,4 +43,12 @@ Route::group(['middleware' => ['auth:sanctum', 'cs']], function () {
 
 Route::group(['middleware' => ['auth:sanctum', 'pembeli']], function () {
     Route::resource('penjualan', PenjualanController::class);
+});
+
+Route::group(['middleware' => ['auth:sanctum', 'penitip']], function () {
+    Route::resource('penitipan', PenitipanController::class);
+    Route::resource('produk', ProdukController::class);
+    Route::patch('penitipan/{id}/konfirmasi-perpanjangan', [PenitipanController::class, 'konfirmasiPerpanjangan']);
+    Route::patch('penitipan/{id}/konfirmasi-pengambilan', [PenitipanController::class, 'konfirmasiPengambilan']);
+    Route::patch('penitipan/{id}/konfirmasi-donasi', [PenitipanController::class, 'konfirmasiDonasi']);
 });
