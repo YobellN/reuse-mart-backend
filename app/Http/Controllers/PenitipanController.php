@@ -15,35 +15,43 @@ class PenitipanController
     public function index(Request $request)
     {
         $user = $request->user();
-        $idPenitip     = $user->penitip->id_penitip;
-        $status_penitipan   = $request->query('status_penitipan');
 
-        $penitipan = Penitipan::with([
-            'penitip.user',
-            'qc.user',
-            'hunter.user',
-            'detailPenitipan.produk.kategori',
-        ])->where('id_penitip', $idPenitip)
-            ->when($status_penitipan === 'Tenggat Waktu', function ($q) {
-                $q->where('status_perpanjangan', 0)
-                    ->whereRaw('DATE_ADD(tanggal_penitipan, INTERVAL 30 DAY) <= ?', [Carbon::today()]);
-            })
-            ->when($status_penitipan === 'Perpanjangan', function ($q) {
-                $q->where('status_perpanjangan', 1);
-            })
-            ->orderByDesc('tanggal_penitipan')->get();
+        if ($user->role === 'Penitip') {
+            $idPenitip = $user->penitip->id_penitip;
 
+            $produk = Produk::select(
+                'produk.*',
+                'kategori_produk.nama_kategori as kategori',
+                'penitipan.id_penitipan',
+                'penitipan.tanggal_penitipan',
+                'penitipan.tenggat_penitipan',
+                'penitipan.tenggat_pengambilan',
+                'penitipan.status_perpanjangan',
+                'qc_user.nama as qc',
+                'hunter_user.nama as hunter',
+                'detail_penitipan.jadwal_pengambilan'
+            )
+                ->join('kategori_produk', 'produk.id_kategori', '=', 'kategori_produk.id_kategori')
+                ->join('detail_penitipan', 'produk.id_produk', '=', 'detail_penitipan.id_produk')
+                ->join('penitipan', 'detail_penitipan.id_penitipan', '=', 'penitipan.id_penitipan')
+                ->join('pegawai as qc', 'penitipan.id_qc', '=', 'qc.id_pegawai')
+                ->join('user as qc_user', 'qc.id_user', '=', 'qc_user.id_user')
+                ->join('pegawai as hunter', 'penitipan.id_hunter', '=', 'hunter.id_pegawai', 'left')
+                ->join('user as hunter_user', 'hunter.id_user', '=', 'hunter_user.id_user', 'left')
+                ->where('penitipan.id_penitip', $idPenitip)
+                ->orderBy('penitipan.tanggal_penitipan', 'desc')
+                ->distinct()
+                ->get();
 
-        if ($penitipan->isEmpty()) {
             return response()->json([
-                'message' => 'Tidak ada data penitipan',
-            ], 404);
+                'message' => 'Berhasil mendapatkan data penitipan',
+                'data' => $produk
+            ], 200);
         }
 
         return response()->json([
-            'message' => 'Data Penitipan',
-            'data'    => $penitipan,
-        ], 200);
+            'message' => 'Role anda bukan penitip',
+        ], 404);
     }
 
     /**

@@ -12,37 +12,7 @@ class ProdukController
      */
     public function index(Request $request)
     {
-        if (!$request->user()) {
-            $produk = Produk::with('kategori')->get();
-            return response()->json([
-                'message' => 'Data Produk',
-                'data' => $produk
-            ]);
-        }
 
-        $user = $request->user();
-
-        if ($user->role === 'Penitip') {
-            $status_akhir_produk = $request->query('status_akhir_produk');
-            $id_penitip = $user->penitip->id_penitip;
-            $produk = Produk::select('produk.*')
-                ->join('detail_penitipan', 'produk.id_produk', '=', 'detail_penitipan.id_produk')
-                ->join('penitipan', 'detail_penitipan.id_penitipan', '=', 'penitipan.id_penitipan')
-                ->where('penitipan.id_penitip', $id_penitip)
-                ->when(
-                    $status_akhir_produk,
-                    fn($q) =>
-                    $q->where('produk.status_akhir_produk', $status_akhir_produk)
-                )
-                ->distinct()
-                ->get();
-
-
-            return response()->json([
-                'message' => 'Data Produk',
-                'data' => $produk
-            ]);
-        }
     }
 
     /**
