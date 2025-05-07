@@ -9,6 +9,7 @@ use App\Http\Controllers\PegawaiController;
 use App\Http\Controllers\PenitipController;
 use App\Http\Controllers\PenitipanController;
 use App\Http\Controllers\PenjualanController;
+use App\Http\Controllers\RequestDonasiController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -51,4 +52,8 @@ Route::group(['middleware' => ['auth:sanctum', 'penitip']], function () {
     Route::patch('penitipan/{id}/konfirmasi-perpanjangan', [PenitipanController::class, 'konfirmasiPerpanjangan']);
     Route::patch('penitipan/{id}/konfirmasi-pengambilan', [PenitipanController::class, 'konfirmasiPengambilan']);
     Route::patch('penitipan/{id}/konfirmasi-donasi', [PenitipanController::class, 'konfirmasiDonasi']);
+});
+
+Route::group(['middleware' => ['auth:sanctum', 'organisasi']], function () {
+    Route::resource('request-donasi', RequestDonasiController::class);
 });

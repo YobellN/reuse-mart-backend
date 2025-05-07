@@ -3,15 +3,31 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\RequestDonasi;
+use Carbon\Carbon;
 
-class RequestDonasiController 
+class RequestDonasiController
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $user = $request->user();
+        $id_organisasi = $user->organisasi->id_organisasi;
+
+        if (!$id_organisasi) {
+            return response()->json([
+                'message' => 'Organisasi tidak ditemukan'
+            ], 404);
+        }
+
+        $request_donasi = RequestDonasi::with('organisasi.user')->where('id_organisasi', $id_organisasi)->get();
+
+        return response()->json([
+            'message' => 'Data Request Donasi',
+            'data' => $request_donasi
+        ], 200);
     }
 
     /**
@@ -27,7 +43,35 @@ class RequestDonasiController
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'deskripsi_request' => 'required|min:10',
+        ], [
+            'deskripsi_request.required' => 'Deskripsi request tidak boleh kosong',
+            'deskripsi_request.min' => 'Deskripsi request minimal 10 karakter',
+        ]);
+
+        $user = $request->user();
+        $id_organisasi = $user->organisasi->id_organisasi;
+
+        if (!$id_organisasi) {
+            return response()->json([
+                'message' => 'Organisasi tidak ditemukan'
+            ], 404);
+        }
+
+        $tanggal_request = Carbon::now();
+
+        $request_donasi = RequestDonasi::create([
+            'id_organisasi' => $id_organisasi,
+            'deskripsi_request' => $request->deskripsi_request,
+            'tanggal_request' => $tanggal_request,
+            'status_request' => 0,
+        ]);
+
+        return response()->json([
+            'message' => 'Request donasi berhasil ditambahkan',
+            'data' => $request_donasi
+        ], 200);
     }
 
     /**
@@ -35,7 +79,18 @@ class RequestDonasiController
      */
     public function show(string $id)
     {
-        //
+        $request_donasi = RequestDonasi::find($id);
+
+        if (!$request_donasi) {
+            return response()->json([
+                'message' => 'Request Donasi tidak ditemukan'
+            ], 404);
+        };
+
+        return response()->json([
+            'message' => 'Data Request Donasi',
+            'data' => $request_donasi
+        ], 200);
     }
 
     /**
@@ -51,7 +106,27 @@ class RequestDonasiController
      */
     public function update(Request $request, string $id)
     {
-        //
+        $request_donasi = RequestDonasi::find($id);
+
+        if (!$request_donasi) {
+            return response()->json([
+                'message' => 'Request Donasi tidak ditemukan'
+            ], 404);
+        }
+
+        $validated = $request->validate([
+            'deskripsi_request' => 'required|min:10',
+        ], [
+            'deskripsi_request.required' => 'Deskripsi request tidak boleh kosong',
+            'deskripsi_request.min' => 'Deskripsi request minimal 10 karakter',
+        ]);
+
+        $request_donasi->update($validated);
+
+        return response()->json([
+            'message' => 'Request donasi berhasil diubah',
+            'data' => $request_donasi
+        ], 200);
     }
 
     /**
@@ -59,6 +134,18 @@ class RequestDonasiController
      */
     public function destroy(string $id)
     {
-        //
+        $request_donasi = RequestDonasi::find($id);
+
+        if (!$request_donasi) {
+            return response()->json([
+                'message' => 'Request Donasi tidak ditemukan'
+            ], 404);
+        }
+
+        $request_donasi->delete();
+
+        return response()->json([
+            'message' => 'Request Donasi berhasil dihapus'
+        ], 200);
     }
 }
