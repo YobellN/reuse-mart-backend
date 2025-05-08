@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Produk;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+
 
 class ProdukController
 {
@@ -12,7 +14,37 @@ class ProdukController
      */
     public function index(Request $request)
     {
+        $kategori = $request->query('kategori');
+        $limit = $request->query('limit');
+        $status_akhir_produk = $request->query('status_akhir_produk');
 
+        if (!$limit || !is_numeric($limit) || $limit < 1) {
+            $limit = 10;
+        }
+
+        $produk = Produk::with([
+            'kategori',
+            'detailPenitipan.penitipan.penitip.user',
+            'fotoProduk'
+        ])
+            ->when($kategori, fn($q) => $q->whereHas('kategori', fn($q2) => $q2->where('nama_kategori', $kategori)))
+            ->when(
+                $status_akhir_produk !== null,
+                fn($q) => $q->where('status_akhir_produk', $status_akhir_produk),
+                fn($q) => $q->whereNull('status_akhir_produk')
+            )
+            ->paginate($limit);
+
+        if ($produk->isEmpty()) {
+            return response()->json([
+                'message' => 'Tidak ada data produk',
+            ], 404);
+        };
+
+        return response()->json([
+            'message' => 'Data Produk',
+            'data' => $produk
+        ]);
     }
 
     /**
@@ -36,7 +68,22 @@ class ProdukController
      */
     public function show(string $id)
     {
-        //
+        $produk = Produk::with([
+            'kategori',
+            'detailPenitipan.penitipan.penitip.user',
+            'fotoProduk'
+        ])->find($id);
+
+        if (!$produk) {
+            return response()->json([
+                'message' => 'Produk tidak ditemukan',
+            ], 404);
+        };
+
+        return response()->json([
+            'message' => 'Data Produk',
+            'data' => $produk
+        ]);
     }
 
     /**
@@ -61,5 +108,30 @@ class ProdukController
     public function destroy(string $id)
     {
         //
+    }
+
+    public function getProdukByPenitip(string $id)
+    {
+        $produk = Produk::with([
+            'kategori',
+            'detailPenitipan.penitipan.penitip.user',
+            'fotoProduk'
+        ])
+        ->join('detail_penitipan', 'produk.id_produk', '=', 'detail_penitipan.id_produk')
+        ->join('penitipan', 'detail_penitipan.id_penitipan', '=', 'penitipan.id_penitipan')
+        ->where('penitipan.id_penitip', $id)
+        ->limit(6)->get();
+
+
+        if ($produk->isEmpty()) {
+            return response()->json([
+                'message' => 'Tidak ada data produk',
+            ], 404);
+        };
+
+        return response()->json([
+            'message' => 'Data Produk',
+            'data' => $produk
+        ]);
     }
 }

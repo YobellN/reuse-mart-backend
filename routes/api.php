@@ -44,6 +44,8 @@ Route::group(['middleware' => ['auth:sanctum', 'cs']], function () {
 
 Route::group(['middleware' => ['auth:sanctum', 'pembeli']], function () {
     Route::resource('penjualan', PenjualanController::class);
+    Route::resource('penitip', PenitipController::class);
+    Route::get('get-produk-by-penitip/{id}', [ProdukController::class, 'getProdukByPenitip']);
 });
 
 Route::group(['middleware' => ['auth:sanctum', 'penitip']], function () {
@@ -57,3 +59,5 @@ Route::group(['middleware' => ['auth:sanctum', 'penitip']], function () {
 Route::group(['middleware' => ['auth:sanctum', 'organisasi']], function () {
     Route::resource('request-donasi', RequestDonasiController::class);
 });
+
+Route::resource('/produk', ProdukController::class);

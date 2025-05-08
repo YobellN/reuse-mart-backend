@@ -50,7 +50,12 @@ class Produk extends Model
 
     public function detailPenitipan()
     {
-        return $this->hasMany(DetailPenitipan::class, 'id_produk', 'id_produk');
+        return $this->hasOne(DetailPenitipan::class, 'id_produk', 'id_produk');
+    }
+
+    public function fotoProduk()
+    {
+        return $this->hasMany(FotoProduk::class, 'id_produk', 'id_produk');
     }
     
 }
