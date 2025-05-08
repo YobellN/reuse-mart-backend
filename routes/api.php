@@ -38,14 +38,16 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 });
 
 Route::group(['middleware' => ['auth:sanctum', 'cs']], function () {
-    Route::resource('penitip', PenitipController::class);
+    Route::get('penitip', [PenitipController::class, 'index']);
+    Route::post('penitip',[PenitipController::class, 'store']);
+    Route::delete('penitip/{id}', [PenitipController::class, 'destroy']);
+    Route::put('penitip/{id}', [PenitipController::class, 'update']);
+    Route::patch('penitip/{id}', [PenitipController::class, 'update']);
 });
 
 
 Route::group(['middleware' => ['auth:sanctum', 'pembeli']], function () {
     Route::resource('penjualan', PenjualanController::class);
-    Route::resource('penitip', PenitipController::class);
-    Route::get('get-produk-by-penitip/{id}', [ProdukController::class, 'getProdukByPenitip']);
 });
 
 Route::group(['middleware' => ['auth:sanctum', 'penitip']], function () {
@@ -61,3 +63,5 @@ Route::group(['middleware' => ['auth:sanctum', 'organisasi']], function () {
 });
 
 Route::resource('/produk', ProdukController::class);
+Route::get('penitip/{id}', [PenitipController::class, 'show']);
+Route::get('get-produk-by-penitip/{id}', [ProdukController::class, 'getProdukByPenitip']);
