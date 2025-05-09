@@ -9,6 +9,7 @@ use App\Http\Controllers\PegawaiController;
 use App\Http\Controllers\PenitipController;
 use App\Http\Controllers\PenitipanController;
 use App\Http\Controllers\PenjualanController;
+use App\Http\Controllers\ResetPasswordController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -20,11 +21,16 @@ Route::post('/updateAllPassword', [AuthController::class, 'updateAllPassword']);
 
 Route::post('/register', [AuthController::class, 'register']);
 
-
+#Seka (gak masuk akal di group ini, kan belum login)
 // Route::group(['middleware' => ['auth:sanctum', 'check.roles:penitip,pembeli,organisasi']], function () {
-//     Route::post('/forgot-password', [ResetPasswordController::class, 'passwordEmail']);
+    Route::post('/password/reset-link', [ResetPasswordController::class, 'sendResetLink']);
+    Route::post('/password/validate-token', [ResetPasswordController::class, 'validateToken']);
+    Route::post('/password/reset', [ResetPasswordController::class, 'resetPassword']);
 
+    // ini reset pegawai
+    Route::post('/password/reset-password-pegawai', [ResetPasswordController::class, 'resetPasswordPegawai']);
 // });
+
 
 Route::group(['middleware' => ['auth:sanctum', 'admin']], function () {
     Route::resource('pegawai', PegawaiController::class);
