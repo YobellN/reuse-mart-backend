@@ -24,7 +24,7 @@ class PegawaiController
      */
     public function create()
     {
-        //
+        
     }
 
     /**
@@ -32,7 +32,12 @@ class PegawaiController
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            
+            
+        ], [
+            
+        ]);
     }
 
     /**
