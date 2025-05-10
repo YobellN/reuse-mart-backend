@@ -36,7 +36,11 @@ Route::post('/register', [AuthController::class, 'register']);
 
 
 Route::group(['middleware' => ['auth:sanctum', 'admin']], function () {
-    Route::resource('pegawai', PegawaiController::class);
+    Route::get('pegawai', [PegawaiController::class, 'index']);
+    Route::post('pegawai',[PegawaiController::class, 'store']);
+    Route::delete('pegawai/{id}', [PegawaiController::class, 'destroy']);
+    Route::put('pegawai/{id}', [PegawaiController::class, 'update']);
+    Route::patch('pegawai/{id}', [PegawaiController::class, 'update']);
     Route::resource('jabatan', JabatanController::class);
 });
 
