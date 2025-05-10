@@ -33,7 +33,12 @@ class PegawaiController
     public function store(Request $request)
     {
         $request->validate([
-            
+            'nama' => 'required|string|min:3',
+            'email' => 'required|email|unique:user,email',
+            'password' => 'required|min:8',
+            'no_telp' => 'required|regex:/^[0-9]{10,15}$/',
+            'id_jabatan' => 'required|exists:jabatan,id_jabatan',
+            'nip' => 'required|unique:pegawai,nip',
             
         ], [
             
