@@ -236,4 +236,25 @@ class PenitipController
             'message' => 'Penitip berhasil dihapus',
         ]);
     }
+
+    public function getNikPenitip(Request $request)
+    {
+        $user = $request->user();
+
+        $penitip = Penitip::where('id_user', $user->id_user)->first();
+
+        if (!$penitip) {
+            return response()->json([
+                'message' => 'Penitip ora ditemukan',
+                'errors' => "Penitip ora2 ditemukan",
+            ], 404);
+        }
+
+        return response()->json([
+            'message' => 'NIK Penitip ditemkkkukan',
+            'data' => [
+                'nik' => $penitip->nik
+            ]
+        ], 200);
+    }
 }
