@@ -11,6 +11,8 @@ use App\Http\Controllers\PenitipanController;
 use App\Http\Controllers\PenjualanController;
 use App\Http\Controllers\RequestDonasiController;
 use App\Http\Controllers\ResetPasswordController;
+use App\Http\Controllers\OrganisasiController;
+use App\Models\Organisasi;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -22,6 +24,7 @@ Route::post('/updateAllPassword', [AuthController::class, 'updateAllPassword']);
 
 Route::post('/register', [AuthController::class, 'register']);
 
+Route::post('/register-organisasi', [AuthController::class, 'registerOrganisasi']);
 
 
 #Seka (gak masuk akal di group ini, kan belum login)
@@ -29,9 +32,6 @@ Route::post('/register', [AuthController::class, 'register']);
     Route::post('/password/reset-link', [ResetPasswordController::class, 'sendResetLink']);
     Route::post('/password/validate-token', [ResetPasswordController::class, 'validateToken']);
     Route::post('/password/reset', [ResetPasswordController::class, 'resetPassword']);
-
-    // ini reset pegawai
-    Route::post('/password/reset-password-pegawai', [ResetPasswordController::class, 'resetPasswordPegawai']);
 // });
 
 
@@ -43,6 +43,11 @@ Route::group(['middleware' => ['auth:sanctum', 'admin']], function () {
     Route::put('pegawai/{id}', [PegawaiController::class, 'update']);
     Route::patch('pegawai/{id}', [PegawaiController::class, 'update']);
     Route::resource('jabatan', JabatanController::class);
+    Route::resource('organisasi', OrganisasiController::class);
+    // ini reset pegawai
+    Route::post('/password/reset-password-pegawai', [ResetPasswordController::class, 'resetPasswordPegawai']);
+    
+
 });
 
 
