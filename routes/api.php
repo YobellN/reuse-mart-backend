@@ -37,6 +37,7 @@ Route::post('/register', [AuthController::class, 'register']);
 
 Route::group(['middleware' => ['auth:sanctum', 'admin']], function () {
     Route::get('pegawai', [PegawaiController::class, 'index']);
+    Route::get('pegawai/{id}', [PegawaiController::class, 'show']);
     Route::post('pegawai',[PegawaiController::class, 'store']);
     Route::delete('pegawai/{id}', [PegawaiController::class, 'destroy']);
     Route::put('pegawai/{id}', [PegawaiController::class, 'update']);
