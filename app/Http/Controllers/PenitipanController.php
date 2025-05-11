@@ -6,6 +6,7 @@ use App\Models\Produk;
 use App\Models\Penitipan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class PenitipanController
 {
@@ -22,6 +23,7 @@ class PenitipanController
             $produk = Produk::select(
                 'produk.*',
                 'kategori_produk.nama_kategori as kategori',
+                'foto_pertama.path_foto as foto',
                 'penitipan.id_penitipan',
                 'penitipan.tanggal_penitipan',
                 'penitipan.tenggat_penitipan',
@@ -32,6 +34,11 @@ class PenitipanController
                 'detail_penitipan.jadwal_pengambilan'
             )
                 ->join('kategori_produk', 'produk.id_kategori', '=', 'kategori_produk.id_kategori')
+                ->leftJoin(DB::raw('(SELECT id_produk, MAX(path_foto) as path_foto
+                                    FROM foto_produk
+                                    WHERE thumbnail = 1
+                                    GROUP BY id_produk
+                                    ) as foto_pertama'), 'foto_pertama.id_produk', '=', 'produk.id_produk')
                 ->join('detail_penitipan', 'produk.id_produk', '=', 'detail_penitipan.id_produk')
                 ->join('penitipan', 'detail_penitipan.id_penitipan', '=', 'penitipan.id_penitipan')
                 ->join('pegawai as qc', 'penitipan.id_qc', '=', 'qc.id_pegawai')

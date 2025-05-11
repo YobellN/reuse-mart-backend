@@ -26,6 +26,7 @@ class PenjualanController
         $penjualan = Penjualan::with([
             'pembeli.user',
             'detail.produk.kategori',
+            'detail.produk.fotoProduk', 
             'pengiriman.alamat',
             'pembayaran',
         ])->where('id_pembeli', $id_pembeli)->when($status_penjualan, fn($q) => $q->where('status_penjualan', $status_penjualan))->orderBy('tanggal_penjualan', 'desc')->get();
