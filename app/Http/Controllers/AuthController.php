@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
-class AuthController 
+class AuthController
 {
     public function login(Request $request)
     {
@@ -142,5 +142,57 @@ class AuthController
         return response()->json([
             'message' => 'Password berhasil diubah'
         ]);
+    }
+
+    public function registerOrganisasi(Request $request)
+    {
+        $request->validate([
+            'nama' => 'required|string|min:3',
+            'email' => 'required|email|unique:user',
+            'password' => 'required|min:8',
+            'no_telp' => 'required|regex:/^[0-9]{10,15}$/',
+            'no_sk' => 'required|string|min:4',
+            'jenis_organisasi' => 'required|string',
+            'alamat_organisasi' => 'required|string',
+        ], [
+            'nama.required' => 'Nama tidak boleh kosong',
+            'nama.min' => 'Nama minimal 3 karakter',
+            'password.required' => 'Password tidak boleh kosong',
+            'password.min' => 'Password minimal 8 karakter',
+            'no_telp.required' => 'Nomor telepon tidak boleh kosong',
+            'no_telp.regex' => 'Nomor telepon tidak valid',
+            'email.required' => 'Email tidak boleh kosong',
+            'email.email' => 'Email tidak valid',
+            'email.unique' => 'Email sudah terdaftar',
+            'no_sk.required' => 'No SK tidak boleh kosong',
+            'no_sk.min' => 'No SK minimal 3 karakter',
+            'jenis_organisasi.required' => 'Jenis organisasi tidak boleh kosong',
+            'alamat_organisasi.required' => 'Alamat organisasi tidak boleh kosong',
+        ]);
+
+        $user = User::create([
+            'nama' => $request->nama,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'no_telp' => $request->no_telp,
+            'role' => 'Organisasi',
+        ]);
+
+        $user->organisasi()->create([
+            'id_user' => $user->id_user,
+            'no_sk' => $request->no_sk,
+            'jenis_organisasi' => $request->jenis_organisasi,
+            'alamat_organisasi' => $request->alamat_organisasi,
+        ]);
+
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return response()->json([
+            'message' => 'Berhasil daftar',
+            'data' => [
+                'user' => $user,
+                'access_token' => $token
+            ],
+        ], 201);
     }
 }

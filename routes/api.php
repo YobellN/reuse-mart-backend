@@ -22,6 +22,7 @@ Route::post('/updateAllPassword', [AuthController::class, 'updateAllPassword']);
 
 Route::post('/register', [AuthController::class, 'register']);
 
+Route::post('/register-organisasi', [AuthController::class, 'registerOrganisasi']);
 
 
 #Seka (gak masuk akal di group ini, kan belum login)
@@ -29,15 +30,14 @@ Route::post('/register', [AuthController::class, 'register']);
     Route::post('/password/reset-link', [ResetPasswordController::class, 'sendResetLink']);
     Route::post('/password/validate-token', [ResetPasswordController::class, 'validateToken']);
     Route::post('/password/reset', [ResetPasswordController::class, 'resetPassword']);
-
-    // ini reset pegawai
-    Route::post('/password/reset-password-pegawai', [ResetPasswordController::class, 'resetPasswordPegawai']);
 // });
 
 
 Route::group(['middleware' => ['auth:sanctum', 'admin']], function () {
     Route::resource('pegawai', PegawaiController::class);
     Route::resource('jabatan', JabatanController::class);
+    // ini reset pegawai
+    Route::post('/password/reset-password-pegawai', [ResetPasswordController::class, 'resetPasswordPegawai']);
 });
 
 
