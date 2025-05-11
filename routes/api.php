@@ -11,6 +11,8 @@ use App\Http\Controllers\PenitipanController;
 use App\Http\Controllers\PenjualanController;
 use App\Http\Controllers\RequestDonasiController;
 use App\Http\Controllers\ResetPasswordController;
+use App\Http\Controllers\OrganisasiController;
+use App\Models\Organisasi;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -36,8 +38,11 @@ Route::post('/register-organisasi', [AuthController::class, 'registerOrganisasi'
 Route::group(['middleware' => ['auth:sanctum', 'admin']], function () {
     Route::resource('pegawai', PegawaiController::class);
     Route::resource('jabatan', JabatanController::class);
+    Route::resource('organisasi', OrganisasiController::class);
     // ini reset pegawai
     Route::post('/password/reset-password-pegawai', [ResetPasswordController::class, 'resetPasswordPegawai']);
+    
+
 });
 
 
