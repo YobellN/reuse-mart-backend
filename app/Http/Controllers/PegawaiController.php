@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Pegawai;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Omaressaouaf\LaravelIdGenerator\IdGenerator;
 
@@ -38,6 +39,8 @@ class PegawaiController
      */
     public function store(Request $request)
     {
+        Log::info('DATA DARI FRONTEND:', $request->all());
+
         $request->validate([
             'nama' => 'required|string|min:3',
             'email' => 'required|email|unique:user,email',
