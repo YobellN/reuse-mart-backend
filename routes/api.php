@@ -10,6 +10,7 @@ use App\Http\Controllers\PenitipController;
 use App\Http\Controllers\PenitipanController;
 use App\Http\Controllers\PenjualanController;
 use App\Http\Controllers\RequestDonasiController;
+use App\Http\Controllers\ResetPasswordController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -21,20 +22,32 @@ Route::post('/updateAllPassword', [AuthController::class, 'updateAllPassword']);
 
 Route::post('/register', [AuthController::class, 'register']);
 
+Route::post('/register-organisasi', [AuthController::class, 'registerOrganisasi']);
 
+
+#Seka (gak masuk akal di group ini, kan belum login)
 // Route::group(['middleware' => ['auth:sanctum', 'check.roles:penitip,pembeli,organisasi']], function () {
-//     Route::post('/forgot-password', [ResetPasswordController::class, 'passwordEmail']);
-
+    Route::post('/password/reset-link', [ResetPasswordController::class, 'sendResetLink']);
+    Route::post('/password/validate-token', [ResetPasswordController::class, 'validateToken']);
+    Route::post('/password/reset', [ResetPasswordController::class, 'resetPassword']);
 // });
 
+
 Route::group(['middleware' => ['auth:sanctum', 'admin']], function () {
-    Route::resource('pegawai', PegawaiController::class);
+    Route::get('pegawai', [PegawaiController::class, 'index']);
+    Route::post('pegawai',[PegawaiController::class, 'store']);
+    Route::delete('pegawai/{id}', [PegawaiController::class, 'destroy']);
+    Route::put('pegawai/{id}', [PegawaiController::class, 'update']);
+    Route::patch('pegawai/{id}', [PegawaiController::class, 'update']);
     Route::resource('jabatan', JabatanController::class);
+    // ini reset pegawai
+    Route::post('/password/reset-password-pegawai', [ResetPasswordController::class, 'resetPasswordPegawai']);
 });
 
 
 Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/getUser', [AuthController::class, 'getUser']);
+    
 });
 
 Route::group(['middleware' => ['auth:sanctum', 'cs']], function () {
@@ -56,6 +69,7 @@ Route::group(['middleware' => ['auth:sanctum', 'penitip']], function () {
     Route::patch('penitipan/{id}/konfirmasi-perpanjangan', [PenitipanController::class, 'konfirmasiPerpanjangan']);
     Route::patch('penitipan/{id}/konfirmasi-pengambilan', [PenitipanController::class, 'konfirmasiPengambilan']);
     Route::patch('penitipan/{id}/konfirmasi-donasi', [PenitipanController::class, 'konfirmasiDonasi']);
+    Route::get('/get-detail-penjualan-penitip', [PenjualanController::class, 'getDetailPenjualanByPenitip']);
 });
 
 Route::group(['middleware' => ['auth:sanctum', 'organisasi']], function () {
@@ -65,3 +79,11 @@ Route::group(['middleware' => ['auth:sanctum', 'organisasi']], function () {
 Route::resource('/produk', ProdukController::class);
 Route::get('penitip/{id}', [PenitipController::class, 'show']);
 Route::get('get-produk-by-penitip/{id}', [ProdukController::class, 'getProdukByPenitip']);
+
+
+
+Route::group(['middleware' => ['auth:sanctum', 'penitip']], function () {
+// UNTUK MENCARI NIK PENITIP DARI EMAIL
+    Route::get('penitip/getNikPenitip', [PenitipController::class, 'getNikPenitip']);
+});
+

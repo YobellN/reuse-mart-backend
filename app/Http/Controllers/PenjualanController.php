@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
+use App\Models\Penitip;
 use App\Models\Penjualan;
+use App\Models\DetailPenjualan;
 use Illuminate\Http\Request;
 
 class PenjualanController
@@ -89,5 +92,58 @@ class PenjualanController
     public function destroy(string $id)
     {
         //
+    }
+
+    // Mengambil seluruh data penjualan berdasarkan user yang terautentikasi
+    public function getDetailPenjualanByPenitip(Request $request)
+    {
+        $user = $request->user();
+        $penitip = Penitip::with('user')->where('id_user', $user->id_user)->first(); 
+    
+        $request->validate([
+            'status' => 'nullable|in:Menunggu Pembayaran,Diproses,Disiapkan,Dikirim,Selesai,Batal,Hangus'
+        ], [
+            'status.in' => 'Status tidak valid'
+        ]);
+    
+        if (!$penitip) {
+            return response()->json([
+                'message' => 'Akun bukan penitip',
+            ], 404);
+        }
+    
+
+        $details = DetailPenjualan::with(['penjualan', 'produk', 'komisi'])
+            ->whereHas('komisi', function($query) use ($penitip) {
+                $query->where('id_penitip', $penitip->id_penitip);
+            })
+            ->whereHas('penjualan', function($query) use ($request) {
+                if ($request->status) {
+                    $query->where('status_penjualan', $request->status);
+                }
+            })
+            ->get()
+            ->map(function($detail) {
+                return [
+                    'id_penjualan' => $detail->penjualan->id_penjualan,
+                    'tanggal_penjualan' => $detail->penjualan->tanggal_penjualan,  
+                    'id_pembeli' => $detail->penjualan->id_pembeli,
+                    'komisi_penitip' => $detail->komisi->komisi_penitip,
+                    'bonus_penitip' => $detail->komisi->bonus_penitip,
+                    'id_produk' => $detail->produk->id_produk,
+                    'nama_produk' => $detail->produk->nama_produk
+                ];
+            });
+
+        if ($details->isEmpty()) {
+            return response()->json([
+                'message' => 'Data tidak ditemukan',
+            ], 404);
+        }
+
+        return response()->json([
+            'message' => 'Data detail penjualan berdasarkan user',
+            'data' => $details
+        ], 200);
     }
 }

@@ -20,6 +20,7 @@ class Pegawai extends Model
     ];
 
     public $timestamps = false;
+    public $incrementing = false;
 
     protected $casts = [
         'id_pegawai' => 'string'
