@@ -13,6 +13,7 @@ use App\Http\Controllers\RequestDonasiController;
 use App\Http\Controllers\ResetPasswordController;
 use App\Http\Controllers\OrganisasiController;
 use App\Http\Controllers\AlamatController;
+use App\Http\Controllers\DiskusiController;
 use App\Models\Organisasi;
 
 Route::get('/user', function (Request $request) {
@@ -30,6 +31,8 @@ Route::post('/register-organisasi', [AuthController::class, 'registerOrganisasi'
 Route::post('/password/reset-link', [ResetPasswordController::class, 'sendResetLink']);
 Route::post('/password/validate-token', [ResetPasswordController::class, 'validateToken']);
 Route::post('/password/reset', [ResetPasswordController::class, 'resetPassword']);
+
+Route::get('diskusi/getDiskusiProduk/{id}', [DiskusiController::class, 'getDiskusiProduk']);
 
 Route::group(['middleware' => ['auth:sanctum', 'admin']], function () {
     Route::get('pegawai', [PegawaiController::class, 'index']);
@@ -54,6 +57,10 @@ Route::group(['middleware' => ['auth:sanctum', 'cs']], function () {
     Route::delete('penitip/{id}', [PenitipController::class, 'destroy']);
     Route::put('penitip/{id}', [PenitipController::class, 'update']);
     Route::patch('penitip/{id}', [PenitipController::class, 'update']);
+
+    Route::get('diskusi/', [DiskusiController::class, 'index']);
+    Route::post('diskusi', [DiskusiController::class, 'store']);
+    Route::delete('diskusi/{id}', [DiskusiController::class, 'destroy']);
 });
 
 Route::group(['middleware' => ['auth:sanctum', 'gudang']], function () {
@@ -65,6 +72,11 @@ Route::group(['middleware' => ['auth:sanctum', 'pembeli']], function () {
     Route::resource('penjualan', PenjualanController::class);
     Route::resource('alamat', AlamatController::class);
     Route::post('alamat/gantiAlamatUtama/{id}', [AlamatController::class, 'gantiAlamatUtama']);
+
+    Route::get('diskusi/', [DiskusiController::class, 'index']);
+    
+    Route::post('diskusi', [DiskusiController::class, 'store']);
+    Route::delete('diskusi/{id}', [DiskusiController::class, 'destroy']);
 });
 
 Route::group(['middleware' => ['auth:sanctum', 'penitip']], function () {
