@@ -22,4 +22,9 @@ class RequestDonasi extends Model
     {
         return $this->belongsTo(Organisasi::class, 'id_organisasi');
     }
+
+    public function donasi()
+    {
+        return $this->hasOne(Donasi::class, 'id_request_donasi', 'id_request_donasi');
+    }
 }

@@ -58,4 +58,8 @@ class Produk extends Model
         return $this->hasMany(FotoProduk::class, 'id_produk', 'id_produk');
     }
     
+      public function donasi()
+    {
+        return $this->hasOne(Donasi::class, 'id_produk', 'id_produk');
+    }
 }
