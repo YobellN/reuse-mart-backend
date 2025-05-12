@@ -134,4 +134,19 @@ class ProdukController
             'data' => $produk
         ]);
     }
+
+    public function getProdukUntukDonasi(Request $request)
+    {
+        $produk = Produk::with([
+            'kategori',
+            'detailPenitipan.penitipan.penitip.user',
+            'fotoProduk'
+        ])
+        ->where('status_akhir_produk', "Produk untuk donasi")->get();
+
+        return response()->json([
+            'message' => 'Data Produk Untuk Donasi',
+            'data' => $produk
+        ]);
+    }
 }
