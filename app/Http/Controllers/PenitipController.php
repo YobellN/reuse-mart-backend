@@ -168,6 +168,8 @@ class PenitipController
                 'sometimes',
                 Rule::unique('penitip', 'nik')->ignore($penitip->nik, 'nik')
             ],
+            'poin' => 'sometimes|numeric|min:0',
+            'saldo' => 'sometimes|numeric|min:0',
             'foto_ktp' => 'sometimes|image|mimes:jpeg,png,jpg,gif,svg,webp',
         ], [
             'nama.min' => 'Nama minimal 3 karakter',
@@ -176,6 +178,10 @@ class PenitipController
             'email.email' => 'Email tidak valid',
             'email.unique' => 'Email sudah terdaftar',
             'nik.unique' => 'NIK sudah terdaftar',
+            'poin.numeric' => 'Poin harus berupa angka',
+            'saldo.numeric' => 'Saldo harus berupa angka',
+            'saldo.min' => 'Saldo minimal 0',
+            'poin.min' => 'Poin minimal 0',
             'foto_ktp.image' => 'Foto harus berupa gambar',
         ]);
 
@@ -200,6 +206,8 @@ class PenitipController
         }
 
         $penitip->nik = $request->nik ?? $penitip->nik;
+        $penitip->poin = $request->poin ?? $penitip->poin;
+        $penitip->saldo = $request->saldo ?? $penitip->saldo;
         $penitip->save();
 
         return response()->json([
