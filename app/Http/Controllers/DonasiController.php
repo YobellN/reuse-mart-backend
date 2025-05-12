@@ -9,14 +9,14 @@ use App\Models\Penitip;
 use App\Models\Produk;
 use Illuminate\Support\Facades\DB;
 
-class DonasiController 
+class DonasiController
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $donasi = Donasi::with('requestDonasi', 'produk')->get();
+        $donasi = Donasi::with(['requestDonasi.organisasi.user', 'produk.fotoProduk'])->get();
 
         return response()->json([
             'message' => 'Data Donasi',
@@ -37,15 +37,15 @@ class DonasiController
      */
     public function store(Request $request)
     {
-         DB::beginTransaction();
+        DB::beginTransaction();
 
-         try {
+        try {
             $request->validate([
                 'id_request_donasi' => 'required|exists:request_donasi,id_request_donasi',
                 'id_produk' => 'required|exists:produk,id_produk',
                 'tanggal_donasi' => 'required|date',
                 'nama_penerima' => 'required|string|min:3',
-            ],[
+            ], [
                 'id_request_donasi.required' => 'ID request donasi tidak boleh kosong',
                 'id_request_donasi.exists' => 'ID request donasi tidak ditemukan',
                 'id_produk.required' => 'ID produk tidak boleh kosong',
@@ -57,7 +57,7 @@ class DonasiController
             ]);
 
             $produk = Produk::find($request->id_produk);
-            if(!$produk){
+            if (!$produk) {
                 return response()->json([
                     'message' => 'Produk tidak ditemukan'
                 ], 404);
@@ -76,16 +76,18 @@ class DonasiController
 
             //ini untuk update poin penitip
             $penitip = $produk->detailPenitipan->penitipan->penitip;
-            $penitip->increment('poin', $total_poin);
-            $penitip->save();
+            if ($produk->detailPenitipan->konfirmasi_donasi == 1) {
+                $penitip->increment('poin', $total_poin);
+                $penitip->save();
+            }
 
             $request_donasi = RequestDonasi::find($request->id_request_donasi);
-            if(!$request_donasi){
+            if (!$request_donasi) {
                 return response()->json([
                     'message' => 'Request donasi tidak ditemukan'
                 ], 404);
             }
-            $request_donasi->status_request = 1; 
+            $request_donasi->status_request = 1;
             $request_donasi->save(); //status req nya kita ganti
 
             $produk->status_akhir_produk = "Didonasikan";
@@ -96,7 +98,7 @@ class DonasiController
 
             return response()->json([
                 'message' => 'Donasi berhasil ditambahkan',
-                'data' => $donasi
+                'data' => $donasi,
             ], 200);
         } catch (\Exception $e) {
             DB::rollBack();

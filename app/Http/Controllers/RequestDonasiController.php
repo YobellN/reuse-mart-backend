@@ -79,18 +79,27 @@ class RequestDonasiController
      */
     public function show(string $id)
     {
-        $request_donasi = RequestDonasi::find($id);
-
-        if (!$request_donasi) {
+        $user = request()->user();
+        if ($user->role == 'Owner') {
+            $request_donasi = RequestDonasi::with('organisasi.user')->where('id_request_donasi', $id)->first();
             return response()->json([
-                'message' => 'Request Donasi tidak ditemukan'
-            ], 404);
-        };
+                'message' => 'Data Request Donasi',
+                'data' => $request_donasi
+            ], 200);
+        } else {
+            $request_donasi = RequestDonasi::find($id);
 
-        return response()->json([
-            'message' => 'Data Request Donasi',
-            'data' => $request_donasi
-        ], 200);
+            if (!$request_donasi) {
+                return response()->json([
+                    'message' => 'Request Donasi tidak ditemukan'
+                ], 404);
+            };
+
+            return response()->json([
+                'message' => 'Data Request Donasi',
+                'data' => $request_donasi
+            ], 200);
+        }
     }
 
     /**
@@ -152,8 +161,8 @@ class RequestDonasiController
     // untuk menampilkan request donasi yang sedang aktif di dahsboard admin
     public function getActiveRequest(Request $request)
     {
-        $request_donasi = RequestDonasi::with('organisasi')->get();
-        $request_donasi = $request_donasi->where('status_request', 0);
+        $request_donasi = RequestDonasi::with('organisasi.user');
+        $request_donasi = $request_donasi->where('status_request', 0)->get();
 
         return response()->json([
             'message' => 'Data Request Donasi',
