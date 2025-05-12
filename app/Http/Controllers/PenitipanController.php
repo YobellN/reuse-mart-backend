@@ -84,14 +84,15 @@ class PenitipanController
 
         if ($status_produk === 'Sedang Dijual') {
             $produk->whereNull('status_akhir_produk');
-        }
-
-        if ($status_produk === 'Tidak Laku') {
-            $produk->whereHas('detailPenitipan.penitipan', function ($query) {
-                $query->where('tenggat_penitipan', '<', now());
-            });
-
-            $produk->where('status_akhir_produk', 'Tidak Laku'); 
+        } elseif ($status_produk === 'Tidak Laku') {
+            $produk->where('status_akhir_produk', 'Tidak Laku')
+                ->whereHas('detailPenitipan.penitipan', function ($query) {
+                    $query->where('tenggat_penitipan', '<', now());
+                });
+        } elseif ($status_produk === 'Akan Diambil') {
+            $produk->whereIn('status_akhir_produk', ['Akan Diambil', 'Diambil']);
+        } elseif (!is_null($status_produk)) {
+            $produk->where('status_akhir_produk', $status_produk);
         }
 
         $data = $produk->get();
