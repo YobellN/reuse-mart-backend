@@ -21,7 +21,7 @@ class Produk extends Model
         'foto_produk',
         'status_akhir_produk',
         'status_ketersediaan',
-        'status_garansi',
+        'waktu_garansi',
         'status_produk_hunting',
         'rating'
     ];

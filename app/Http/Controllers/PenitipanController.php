@@ -12,47 +12,7 @@ class PenitipanController
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
-    {
-        $user = $request->user();
-
-        if ($user->role === 'Penitip') {
-            $idPenitip = $user->penitip->id_penitip;
-
-            $produk = Produk::select(
-                'produk.*',
-                'kategori_produk.nama_kategori as kategori',
-                'penitipan.id_penitipan',
-                'penitipan.tanggal_penitipan',
-                'penitipan.tenggat_penitipan',
-                'penitipan.tenggat_pengambilan',
-                'penitipan.status_perpanjangan',
-                'qc_user.nama as qc',
-                'hunter_user.nama as hunter',
-                'detail_penitipan.jadwal_pengambilan'
-            )
-                ->join('kategori_produk', 'produk.id_kategori', '=', 'kategori_produk.id_kategori')
-                ->join('detail_penitipan', 'produk.id_produk', '=', 'detail_penitipan.id_produk')
-                ->join('penitipan', 'detail_penitipan.id_penitipan', '=', 'penitipan.id_penitipan')
-                ->join('pegawai as qc', 'penitipan.id_qc', '=', 'qc.id_pegawai')
-                ->join('user as qc_user', 'qc.id_user', '=', 'qc_user.id_user')
-                ->join('pegawai as hunter', 'penitipan.id_hunter', '=', 'hunter.id_pegawai', 'left')
-                ->join('user as hunter_user', 'hunter.id_user', '=', 'hunter_user.id_user', 'left')
-                ->where('penitipan.id_penitip', $idPenitip)
-                ->orderBy('penitipan.tanggal_penitipan', 'desc')
-                ->distinct()
-                ->get();
-
-            return response()->json([
-                'message' => 'Berhasil mendapatkan data penitipan',
-                'data' => $produk
-            ], 200);
-        }
-
-        return response()->json([
-            'message' => 'Role anda bukan penitip',
-        ], 404);
-    }
+    public function index(Request $request) {}
 
     /**
      * Show the form for creating a new resource.
@@ -100,6 +60,46 @@ class PenitipanController
     public function destroy(string $id)
     {
         //
+    }
+
+    public function getProdukTitipan(Request $request)
+    {
+        $user = $request->user();
+        $idPenitip = optional($user->penitip)->id_penitip;
+        $status_produk = $request->input('status_produk');
+
+        $produk = Produk::with([
+            'kategori',
+            'fotoProduk',
+            'detailPenitipan.penitipan.penitip.user',
+            'detailPenitipan.penitipan.qc.user',
+            'detailPenitipan.penitipan.hunter.user',
+        ]);
+
+        if ($idPenitip) {
+            $produk->whereHas('detailPenitipan.penitipan', function ($query) use ($idPenitip) {
+                $query->where('id_penitip', $idPenitip);
+            });
+        }
+
+        if ($status_produk === 'Sedang Dijual') {
+            $produk->whereNull('status_akhir_produk');
+        }
+
+        if ($status_produk === 'Tidak Laku') {
+            $produk->whereHas('detailPenitipan.penitipan', function ($query) {
+                $query->where('tenggat_penitipan', '<', now());
+            });
+
+            $produk->where('status_akhir_produk', 'Tidak Laku'); 
+        }
+
+        $data = $produk->get();
+
+        return response()->json([
+            'message' => 'Berhasil mendapatkan data penitipan',
+            'data' => $data
+        ], 200);
     }
 
     public function konfirmasiPerpanjangan(string $id)
