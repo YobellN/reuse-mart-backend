@@ -82,11 +82,3 @@ Route::group(['middleware' => ['auth:sanctum', 'organisasi']], function () {
 Route::resource('/produk', ProdukController::class);
 Route::get('penitip/{id}', [PenitipController::class, 'show']);
 Route::get('get-produk-by-penitip/{id}', [ProdukController::class, 'getProdukByPenitip']);
-
-
-
-Route::group(['middleware' => ['auth:sanctum', 'penitip']], function () {
-// UNTUK MENCARI NIK PENITIP DARI EMAIL
-    Route::get('penitip/getNikPenitip', [PenitipController::class, 'getNikPenitip']);
-});
-
