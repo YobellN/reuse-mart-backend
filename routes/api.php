@@ -12,6 +12,7 @@ use App\Http\Controllers\PenjualanController;
 use App\Http\Controllers\RequestDonasiController;
 use App\Http\Controllers\ResetPasswordController;
 use App\Http\Controllers\OrganisasiController;
+use App\Http\Controllers\AlamatController;
 use App\Models\Organisasi;
 
 Route::get('/user', function (Request $request) {
@@ -26,14 +27,9 @@ Route::post('/register', [AuthController::class, 'register']);
 
 Route::post('/register-organisasi', [AuthController::class, 'registerOrganisasi']);
 
-
-#Seka (gak masuk akal di group ini, kan belum login)
-// Route::group(['middleware' => ['auth:sanctum', 'check.roles:penitip,pembeli,organisasi']], function () {
 Route::post('/password/reset-link', [ResetPasswordController::class, 'sendResetLink']);
 Route::post('/password/validate-token', [ResetPasswordController::class, 'validateToken']);
 Route::post('/password/reset', [ResetPasswordController::class, 'resetPassword']);
-// });
-
 
 Route::group(['middleware' => ['auth:sanctum', 'admin']], function () {
     Route::get('pegawai', [PegawaiController::class, 'index']);
@@ -45,8 +41,6 @@ Route::group(['middleware' => ['auth:sanctum', 'admin']], function () {
     Route::resource('organisasi', OrganisasiController::class);
     // ini reset pegawai
     Route::post('/password/reset-password-pegawai', [ResetPasswordController::class, 'resetPasswordPegawai']);
-    
-
 });
 
 
@@ -69,6 +63,8 @@ Route::group(['middleware' => ['auth:sanctum', 'gudang']], function () {
 
 Route::group(['middleware' => ['auth:sanctum', 'pembeli']], function () {
     Route::resource('penjualan', PenjualanController::class);
+    Route::resource('alamat', AlamatController::class);
+    Route::post('alamat/gantiAlamatUtama/{id}', [AlamatController::class, 'gantiAlamatUtama']);
 });
 
 Route::group(['middleware' => ['auth:sanctum', 'penitip']], function () {
@@ -90,6 +86,7 @@ Route::get('get-produk-by-penitip/{id}', [ProdukController::class, 'getProdukByP
 
 
 Route::group(['middleware' => ['auth:sanctum', 'penitip']], function () {
-    // UNTUK MENCARI NIK PENITIP DARI EMAIL
+// UNTUK MENCARI NIK PENITIP DARI EMAIL
     Route::get('penitip/getNikPenitip', [PenitipController::class, 'getNikPenitip']);
 });
+
