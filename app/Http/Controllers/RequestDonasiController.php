@@ -148,4 +148,16 @@ class RequestDonasiController
             'message' => 'Request Donasi berhasil dihapus'
         ], 200);
     }
+
+    // untuk menampilkan request donasi yang sedang aktif di dahsboard admin
+    public function getActiveRequest(Request $request)
+    {
+        $request_donasi = RequestDonasi::with('organisasi')->get();
+        $request_donasi = $request_donasi->where('status_request', 0);
+
+        return response()->json([
+            'message' => 'Data Request Donasi',
+            'data' => $request_donasi
+        ], 200);
+    }
 }

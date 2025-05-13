@@ -10,6 +10,7 @@ use App\Http\Controllers\PenitipController;
 use App\Http\Controllers\PenitipanController;
 use App\Http\Controllers\PenjualanController;
 use App\Http\Controllers\RequestDonasiController;
+use App\Http\Controllers\DonasiController;
 use App\Http\Controllers\ResetPasswordController;
 use App\Http\Controllers\OrganisasiController;
 use App\Http\Controllers\AlamatController;
@@ -36,7 +37,8 @@ Route::get('diskusi/getDiskusiProduk/{id}', [DiskusiController::class, 'getDisku
 
 Route::group(['middleware' => ['auth:sanctum', 'admin']], function () {
     Route::get('pegawai', [PegawaiController::class, 'index']);
-    Route::post('pegawai', [PegawaiController::class, 'store']);
+    Route::get('pegawai/{id}', [PegawaiController::class, 'show']);
+    Route::post('pegawai',[PegawaiController::class, 'store']);
     Route::delete('pegawai/{id}', [PegawaiController::class, 'destroy']);
     Route::put('pegawai/{id}', [PegawaiController::class, 'update']);
     Route::patch('pegawai/{id}', [PegawaiController::class, 'update']);
@@ -44,6 +46,13 @@ Route::group(['middleware' => ['auth:sanctum', 'admin']], function () {
     Route::resource('organisasi', OrganisasiController::class);
     // ini reset pegawai
     Route::post('/password/reset-password-pegawai', [ResetPasswordController::class, 'resetPasswordPegawai']);
+});
+
+Route::group(['middleware' => ['auth:sanctum', 'owner']], function () {
+    Route::get('request-donasi-aktif', [RequestDonasiController::class, 'getActiveRequest']);
+    Route::get('produk-untuk-donasi', [ProdukController::class, 'getProdukUntukDonasi']);
+    Route::get('donasi', [DonasiController::class, 'index']);
+    Route::post('donasi', [DonasiController::class, 'store']);
 });
 
 
