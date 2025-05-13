@@ -76,6 +76,11 @@ class AuthController
             'role' => 'Pembeli',
         ]);
 
+        $user->pembeli()->create([
+            'id_user' => $user->id_user,
+            'poin' => 0,
+        ]);
+
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
