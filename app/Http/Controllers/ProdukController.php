@@ -150,14 +150,9 @@ class ProdukController
         ]);
     }
 
-    public function getProdukUntukDonasi(Request $request)
+    public function getProdukUntukDonasi()
     {
-        $produk = Produk::with([
-            'kategori',
-            'detailPenitipan.penitipan.penitip.user',
-            'fotoProduk'
-        ])
-        ->where('status_akhir_produk', "Produk untuk donasi")->get();
+        $produk = Produk::with(['kategori', 'fotoProduk'])->where('status_akhir_produk', "Produk untuk donasi")->get();
 
         return response()->json([
             'message' => 'Data Produk Untuk Donasi',

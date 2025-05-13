@@ -50,6 +50,7 @@ Route::group(['middleware' => ['auth:sanctum', 'admin']], function () {
 
 Route::group(['middleware' => ['auth:sanctum', 'owner']], function () {
     Route::get('request-donasi-aktif', [RequestDonasiController::class, 'getActiveRequest']);
+    Route::get('owner/request-donasi/{id}', [RequestDonasiController::class, 'show']);
     Route::get('produk-untuk-donasi', [ProdukController::class, 'getProdukUntukDonasi']);
     Route::get('donasi', [DonasiController::class, 'index']);
     Route::post('donasi', [DonasiController::class, 'store']);
