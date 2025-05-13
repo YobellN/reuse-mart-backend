@@ -49,6 +49,7 @@ Route::group(['middleware' => ['auth:sanctum', 'admin']], function () {
 
 Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/getUser', [AuthController::class, 'getUser']);
+    Route::post('diskusi/', [DiskusiController::class, 'store']);
 });
 
 Route::group(['middleware' => ['auth:sanctum', 'cs']], function () {
@@ -59,7 +60,6 @@ Route::group(['middleware' => ['auth:sanctum', 'cs']], function () {
     Route::patch('penitip/{id}', [PenitipController::class, 'update']);
 
     Route::get('diskusi/', [DiskusiController::class, 'index']);
-    Route::post('diskusi', [DiskusiController::class, 'store']);
     Route::delete('diskusi/{id}', [DiskusiController::class, 'destroy']);
 });
 
@@ -74,9 +74,6 @@ Route::group(['middleware' => ['auth:sanctum', 'pembeli']], function () {
     Route::post('alamat/gantiAlamatUtama/{id}', [AlamatController::class, 'gantiAlamatUtama']);
 
     Route::get('diskusi/', [DiskusiController::class, 'index']);
-    
-    Route::post('diskusi', [DiskusiController::class, 'store']);
-    Route::delete('diskusi/{id}', [DiskusiController::class, 'destroy']);
 });
 
 Route::group(['middleware' => ['auth:sanctum', 'penitip']], function () {
@@ -92,5 +89,6 @@ Route::group(['middleware' => ['auth:sanctum', 'organisasi']], function () {
 });
 
 Route::resource('/produk', ProdukController::class);
+Route::get('produk/getAllProduk', [ProdukController::class, 'getAllProduk']);
 Route::get('penitip/{id}', [PenitipController::class, 'show']);
 Route::get('get-produk-by-penitip/{id}', [ProdukController::class, 'getProdukByPenitip']);

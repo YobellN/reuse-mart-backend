@@ -68,8 +68,17 @@ class DiskusiController extends Controller
                 ], 422);
             }
 
+            $user = $request->user();
+
+            if (!in_array($user->role, ['Pembeli', 'CS'])) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Anda tidak memiliki izin untuk menambah diskusi'
+                ], 403);
+            }
+
             $diskusi = Diskusi::create([
-                'id_user' => $request->user()->id_user,
+                'id_user' => $user->id_user,
                 'id_produk' => $request->id_produk,
                 'pesan' => $request->pesan,
                 'timestamp' => now()

@@ -47,6 +47,21 @@ class ProdukController
         ]);
     }
 
+    // get All Produk
+    public function getAllProduk()
+    {
+        $produk = Produk::with([
+            'kategori',
+            'detailPenitipan.penitipan.penitip.user',
+            'fotoProduk'
+        ])->get();
+
+        return response()->json([
+            'message' => 'Data Produk',
+            'data' => $produk
+        ]);
+    }
+
     /**
      * Show the form for creating a new resource.
      */
