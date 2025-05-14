@@ -98,35 +98,35 @@ class PenjualanController
     public function getDetailPenjualanByPenitip(Request $request)
     {
         $user = $request->user();
-        $penitip = Penitip::with('user')->where('id_user', $user->id_user)->first(); 
-    
+        $penitip = Penitip::with('user')->where('id_user', $user->id_user)->first();
+
         $request->validate([
             'status' => 'nullable|in:Menunggu Pembayaran,Diproses,Disiapkan,Dikirim,Selesai,Batal,Hangus'
         ], [
             'status.in' => 'Status tidak valid'
         ]);
-    
+
         if (!$penitip) {
             return response()->json([
                 'message' => 'Akun bukan penitip',
             ], 404);
         }
-    
+
 
         $details = DetailPenjualan::with(['penjualan', 'produk', 'komisi'])
-            ->whereHas('komisi', function($query) use ($penitip) {
+            ->whereHas('komisi', function ($query) use ($penitip) {
                 $query->where('id_penitip', $penitip->id_penitip);
             })
-            ->whereHas('penjualan', function($query) use ($request) {
+            ->whereHas('penjualan', function ($query) use ($request) {
                 if ($request->status) {
                     $query->where('status_penjualan', $request->status);
                 }
             })
             ->get()
-            ->map(function($detail) {
+            ->map(function ($detail) {
                 return [
                     'id_penjualan' => $detail->penjualan->id_penjualan,
-                    'tanggal_penjualan' => $detail->penjualan->tanggal_penjualan,  
+                    'tanggal_penjualan' => $detail->penjualan->tanggal_penjualan,
                     'id_pembeli' => $detail->penjualan->id_pembeli,
                     'komisi_penitip' => $detail->komisi->komisi_penitip,
                     'bonus_penitip' => $detail->komisi->bonus_penitip,
