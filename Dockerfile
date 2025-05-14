@@ -17,6 +17,8 @@ COPY . .
 # Install dependencies
 RUN composer install --no-dev --optimize-autoloader
 
+RUN php artisan storage:link || true
+
 # Expose port 8000
 EXPOSE 8000
 
