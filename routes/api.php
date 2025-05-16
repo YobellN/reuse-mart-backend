@@ -15,6 +15,7 @@ use App\Http\Controllers\ResetPasswordController;
 use App\Http\Controllers\OrganisasiController;
 use App\Http\Controllers\AlamatController;
 use App\Http\Controllers\DiskusiController;
+use App\Http\Controllers\KategoriController;
 use App\Models\Organisasi;
 
 Route::get('/user', function (Request $request) {
@@ -102,3 +103,4 @@ Route::resource('/produk', ProdukController::class);
 Route::get('produk/getAllProduk', [ProdukController::class, 'getAllProduk']);
 Route::get('penitip/{id}', [PenitipController::class, 'show']);
 Route::get('get-produk-by-penitip/{id}', [ProdukController::class, 'getProdukByPenitip']);
+Route::get('kategori-produk', [KategoriController::class, 'index']);
