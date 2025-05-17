@@ -15,7 +15,7 @@ use App\Http\Controllers\ResetPasswordController;
 use App\Http\Controllers\OrganisasiController;
 use App\Http\Controllers\AlamatController;
 use App\Http\Controllers\DiskusiController;
-use App\Models\Organisasi;
+use App\Http\Controllers\NotifController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -38,7 +38,7 @@ Route::get('diskusi/getDiskusiProduk/{id}', [DiskusiController::class, 'getDisku
 Route::group(['middleware' => ['auth:sanctum', 'admin']], function () {
     Route::get('pegawai', [PegawaiController::class, 'index']);
     Route::get('pegawai/{id}', [PegawaiController::class, 'show']);
-    Route::post('pegawai',[PegawaiController::class, 'store']);
+    Route::post('pegawai', [PegawaiController::class, 'store']);
     Route::delete('pegawai/{id}', [PegawaiController::class, 'destroy']);
     Route::put('pegawai/{id}', [PegawaiController::class, 'update']);
     Route::patch('pegawai/{id}', [PegawaiController::class, 'update']);
@@ -60,6 +60,7 @@ Route::group(['middleware' => ['auth:sanctum', 'owner']], function () {
 Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/getUser', [AuthController::class, 'getUser']);
     Route::post('diskusi/', [DiskusiController::class, 'store']);
+    Route::post('/notif', [NotifController::class, 'notifyUser']);
 });
 
 Route::group(['middleware' => ['auth:sanctum', 'cs']], function () {
