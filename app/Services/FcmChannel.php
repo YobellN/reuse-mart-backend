@@ -32,7 +32,6 @@ class FcmChannel
 
         $result = json_decode((string) $response->getBody(), true);
 
-        // Return response lengkap
         return [
             'success' => true,
             'device_token' => $deviceToken,
@@ -47,7 +46,7 @@ class FcmChannel
 
     private function getAccessToken()
     {
-        $credentialsPath = storage_path('app/firebase-service-account.json'); // Path to your service account file
+        $credentialsPath = storage_path('app/firebase-service-account.json'); 
 
         $client = new Google_Client();
         $client->setAuthConfig($credentialsPath);
