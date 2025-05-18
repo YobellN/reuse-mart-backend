@@ -77,6 +77,7 @@ Route::group(['middleware' => ['auth:sanctum', 'cs']], function () {
 
 Route::group(['middleware' => ['auth:sanctum', 'gudang']], function () {
     Route::get('gudang/penitipan/produk-titipan', [PenitipanController::class, 'getProdukTitipan']);
+    Route::patch('penitipan/pengambilan-produk-titipan/{id}', [PenitipanController::class, 'pengambilanProdukTitipan']);
 });
 
 
@@ -92,7 +93,7 @@ Route::group(['middleware' => ['auth:sanctum', 'penitip']], function () {
     Route::get('penitip/penitipan/produk-titipan', [PenitipanController::class, 'getProdukTitipan']);
     Route::patch('penitipan/konfirmasi-perpanjangan/{id}', [PenitipanController::class, 'konfirmasiPerpanjangan']);
     Route::patch('penitipan/konfirmasi-pengambilan/{id}', [PenitipanController::class, 'konfirmasiPengambilan']);
-    Route::patch('penitipan/{id}/konfirmasi-donasi', [PenitipanController::class, 'konfirmasiDonasi']);
+    Route::patch('penitipan/konfirmasi-donasi/{id}', [PenitipanController::class, 'konfirmasiDonasi']);
     Route::get('/get-detail-penjualan-penitip', [PenjualanController::class, 'getDetailPenjualanByPenitip']);
 });
 
@@ -105,3 +106,9 @@ Route::get('produk/getAllProduk', [ProdukController::class, 'getAllProduk']);
 Route::get('penitip/{id}', [PenitipController::class, 'show']);
 Route::get('get-produk-by-penitip/{id}', [ProdukController::class, 'getProdukByPenitip']);
 Route::get('kategori-produk', [KategoriController::class, 'index']);
+
+// buat tes
+Route::get('komisi/{id}', [PenjualanController::class,  'tesKomisi']);
+Route::post('update-all-komisi', [PenjualanController::class, 'updateAllKomisi']);
+Route::get('tes-tambah-saldo', [PenjualanController::class, 'tesTambahSaldo']);
+Route::get('tes-tambah-poin', [PenjualanController::class, 'tesTambahPoin']);
