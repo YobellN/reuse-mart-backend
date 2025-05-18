@@ -7,12 +7,12 @@ use Illuminate\Http\Request;
 
 class NotifController 
 {
-    protected $firebase;
+    // protected $firebase;
 
-    public function __construct(FcmChannel $firebase)
-    {
-        $this->firebase = $firebase;
-    }
+    // public function __construct(FcmChannel $firebase)
+    // {
+    //     $this->firebase = $firebase;
+    // }
 
     public function notifyUser(Request $request)
     {
@@ -27,7 +27,7 @@ class NotifController
 
         $token = $user->fcm_token;
 
-        $result = $this->firebase->send(
+        $result = FcmChannel::send(
             $token,
             "TES",
             "Anjay Masuk BANG BANGGA",

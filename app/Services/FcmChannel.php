@@ -7,15 +7,15 @@ use Google_Client;
 
 class FcmChannel
 {
-    public function send(string $deviceToken, string $title, string $body)
+    public static function send(string $deviceToken, string $title, string $body)
     {
-        $client = new \GuzzleHttp\Client();
+        $client = new Client();
 
         $response = $client->post(
             'https://fcm.googleapis.com/v1/projects/' . env('FIREBASE_PROJECT_ID') . '/messages:send',
             [
                 'headers' => [
-                    'Authorization' => 'Bearer ' . $this->getAccessToken(),
+                    'Authorization' => 'Bearer ' . self::getAccessToken(),
                     'Content-Type'  => 'application/json',
                 ],
                 'json' => [
@@ -43,12 +43,11 @@ class FcmChannel
         ];
     }
 
-
-    private function getAccessToken()
+    private static function getAccessToken()
     {
-        $credentialsPath = storage_path('app/firebase-service-account.json'); 
+        $credentialsPath = storage_path('app/firebase-service-account.json');
 
-        $client = new Google_Client();
+        $client = new \Google_Client();
         $client->setAuthConfig($credentialsPath);
         $client->addScope('https://www.googleapis.com/auth/firebase.messaging');
 

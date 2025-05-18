@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Donasi;
-use App\Models\RequestDonasi;
-use App\Models\Penitip;
 use App\Models\Produk;
+use App\Models\Penitip;
+use App\Services\FcmChannel;
+use Illuminate\Http\Request;
+use App\Models\RequestDonasi;
 use Illuminate\Support\Facades\DB;
 
 class DonasiController
@@ -81,6 +82,16 @@ class DonasiController
                 $penitip->save();
             }
 
+            //notif penitip
+            $fcm_token = $penitip->user->fcm_token;
+            if ($fcm_token) {
+                $result = FcmChannel::send(
+                    $fcm_token,
+                    "Produk Didonasikan!",
+                    "Produk {$produk->nama_produk} telah berhasil didonasikan!",
+                );
+            }
+
             $request_donasi = RequestDonasi::find($request->id_request_donasi);
             if (!$request_donasi) {
                 return response()->json([
@@ -99,6 +110,7 @@ class DonasiController
             return response()->json([
                 'message' => 'Donasi berhasil ditambahkan',
                 'data' => $donasi,
+                'notifikasi' => $result || 'FCM token tidak tersedia'
             ], 200);
         } catch (\Exception $e) {
             DB::rollBack();
