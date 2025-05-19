@@ -76,6 +76,8 @@ Route::group(['middleware' => ['auth:sanctum', 'cs']], function () {
 
 Route::group(['middleware' => ['auth:sanctum', 'gudang']], function () {
     Route::get('gudang/penitipan/produk-titipan', [PenitipanController::class, 'getProdukTitipan']);
+    Route::get('penitipan/all', [PenitipanController::class, 'index']);
+    Route::get('penitipan/detail/{id}', [PenitipanController::class, 'show']);
 });
 
 

@@ -12,7 +12,14 @@ class PenitipanController
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request) {}
+    public function index(Request $request) {
+        $penitipan = Penitipan::with('penitip.user', 'qc.user', 'hunter.user', 'detailPenitipan.produk.kategori')->get();
+
+        return response()->json([
+            'message' => 'Data Penitipan',
+            'data' => $penitipan
+        ], 200);
+    }
 
     /**
      * Show the form for creating a new resource.
@@ -35,8 +42,20 @@ class PenitipanController
      */
     public function show(string $id)
     {
-        //
-    }
+         $penitipan = Penitipan::with('penitip.user', 'qc.user', 'hunter.user', 'detailPenitipan.produk.kategori')->find($id);
+    
+        if(!$penitipan) {
+            return response()->json([
+                'message' => 'Penitipan tidak ditemukan',
+                'errors'  => ['id' => 'Penitipan tidak ditemukan'],
+            ], 404);
+        }
+    
+        return response()->json([
+            'message' => 'Data Penitipan',
+            'data' => $penitipan
+        ], 200);
+        }
 
     /**
      * Show the form for editing the specified resource.
