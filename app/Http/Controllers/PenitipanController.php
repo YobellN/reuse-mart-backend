@@ -122,6 +122,7 @@ class PenitipanController
         ], 200);
     }
 
+
     public function konfirmasiPerpanjangan(string $id)
     {
         $penitipan = Penitipan::find($id);
@@ -159,6 +160,18 @@ class PenitipanController
             ], 404);
         }
 
+        if ($produk->status_akhir_produk == 'Diambil') {
+            return response()->json([
+                'message' => 'Produk sudah diambil',
+            ], 404);
+        }
+
+        if ($produk->status_akhir_produk == 'Akan Diambil') {
+            return response()->json([
+                'message' => 'Anda sudah mengajukan konfirmasi pengambilan',
+            ], 404);
+        }
+
         $produk->status_akhir_produk = "Akan Diambil";
         $produk->save();
 
@@ -178,11 +191,46 @@ class PenitipanController
             ], 404);
         }
 
+        if ($produk->status_akhir_produk == 'Produk untuk donasi') {
+            return response()->json([
+                'message' => 'Produk sudah dikonfirmasi untuk donasi',
+            ], 404);
+        }
+
         $produk->status_akhir_produk = "Produk untuk donasi";
         $produk->save();
 
         return response()->json([
             'message' => 'Produk berhasil dikonfirmasi untuk donasi',
+            'data' => $produk
+        ], 200);
+    }
+
+    public function pengambilanProdukTitipan(string $id)
+    {
+        $produk = Produk::find($id);
+
+        if (!$produk) {
+            return response()->json([
+                'message' => 'Produk tidak ditemukan',
+            ], 404);
+        }
+
+        if ($produk->status_akhir_produk == 'Diambil') {
+            return response()->json([
+                'message' => 'Produk sudah diambil',
+            ], 404);
+        }
+
+        $produk->status_akhir_produk = "Diambil";
+        $produk->detailPenitipan()->update([
+            'tanggal_pengambilan' => now(),
+        ]);
+        $produk->save();
+
+
+        return response()->json([
+            'message' => 'Produk berhasil dikonfirmasi pengambilan',
             'data' => $produk
         ], 200);
     }
