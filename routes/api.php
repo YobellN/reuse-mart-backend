@@ -17,6 +17,8 @@ use App\Http\Controllers\AlamatController;
 use App\Http\Controllers\DiskusiController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\NotifController;
+use App\Http\Controllers\KeranjangController;
+use App\Http\Controllers\DetailKeranjangController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -87,6 +89,14 @@ Route::group(['middleware' => ['auth:sanctum', 'pembeli']], function () {
     Route::post('alamat/gantiAlamatUtama/{id}', [AlamatController::class, 'gantiAlamatUtama']);
 
     Route::get('diskusi/', [DiskusiController::class, 'index']);
+
+    // route untuk transaksi
+    Route::post('keranjang', [KeranjangController::class, 'store']);
+    Route::get('detail-keranjang', [DetailKeranjangController::class, 'show']);
+    Route::post('detail-keranjang', [DetailKeranjangController::class, 'store']);
+    Route::put('detail-keranjang', [DetailKeranjangController::class, 'update']);
+    Route::delete('detail-keranjang', [DetailKeranjangController::class, 'destroy']);
+    Route::post('detail-keranjang/destroy-all', [DetailKeranjangController::class, 'destroyAll']);
 });
 
 Route::group(['middleware' => ['auth:sanctum', 'penitip']], function () {
