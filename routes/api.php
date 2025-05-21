@@ -80,6 +80,7 @@ Route::group(['middleware' => ['auth:sanctum', 'cs']], function () {
 Route::group(['middleware' => ['auth:sanctum', 'gudang']], function () {
     Route::get('gudang/penitipan/produk-titipan', [PenitipanController::class, 'getProdukTitipan']);
     Route::patch('penitipan/pengambilan-produk-titipan/{id}', [PenitipanController::class, 'pengambilanProdukTitipan']);
+    Route::get('gudang/penjualan', [PenjualanController::class, 'index']);
 });
 
 
@@ -87,7 +88,6 @@ Route::group(['middleware' => ['auth:sanctum', 'pembeli']], function () {
     Route::resource('penjualan', PenjualanController::class);
     Route::resource('alamat', AlamatController::class);
     Route::post('alamat/gantiAlamatUtama/{id}', [AlamatController::class, 'gantiAlamatUtama']);
-
     Route::get('diskusi/', [DiskusiController::class, 'index']);
 
     // route untuk transaksi
