@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Donasi;
 use App\Models\Produk;
-use App\Models\Penitip;
 use App\Services\FcmChannel;
 use Illuminate\Http\Request;
 use App\Models\RequestDonasi;
@@ -110,7 +109,7 @@ class DonasiController
             return response()->json([
                 'message' => 'Donasi berhasil ditambahkan',
                 'data' => $donasi,
-                'notifikasi' => $result || 'FCM token tidak tersedia'
+                'notifikasi' => $result ?? null,
             ], 200);
         } catch (\Exception $e) {
             DB::rollBack();

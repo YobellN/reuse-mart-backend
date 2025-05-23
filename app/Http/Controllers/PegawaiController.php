@@ -12,7 +12,7 @@ use Illuminate\Validation\Rule;
 use Omaressaouaf\LaravelIdGenerator\IdGenerator;
 
 
-class PegawaiController 
+class PegawaiController
 {
     /**
      * Display a listing of the resource.
@@ -29,19 +29,16 @@ class PegawaiController
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
-    {
-        
-    }
+    public function create() {}
 
     /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
-         DB::beginTransaction();
+        DB::beginTransaction();
 
-         try {
+        try {
             $request->validate([
                 'nama' => 'required|string|min:3',
                 'email' => 'required|email|unique:user,email',
@@ -88,7 +85,7 @@ class PegawaiController
             ]);
 
             DB::commit();
-            
+
             return response()->json([
                 'status_code' => 201,
                 'message' => 'Pegawai berhasil ditambahkan',
@@ -107,7 +104,7 @@ class PegawaiController
     {
         $pegawai = Pegawai::with('user', 'jabatan')->find($id);
 
-        if(!$pegawai) {
+        if (!$pegawai) {
             return response()->json([
                 'message' => 'Pegawai tidak ditemukan',
                 'errors' => ['id' => 'Pegawai tidak ditemukan'],
@@ -136,7 +133,7 @@ class PegawaiController
         DB::beginTransaction();
         try {
             $pegawai = Pegawai::find($id);
-            if(!$pegawai){
+            if (!$pegawai) {
                 return response()->json([
                     'message' => 'Pegawai tidak ditemukan',
                     'errors' => ['id' => 'Pegawai tidak ditemukan'],
@@ -160,25 +157,25 @@ class PegawaiController
                     Rule::unique('pegawai', 'nip')->ignore($pegawai->nip, 'nip')
                 ],
                 'tanggal_lahir' => 'sometimes|date',
-                
+
             ], [
-            'nama.min' => 'Nama minimal 3 karakter',
-            'password.min' => 'Password minimal 8 karakter',
-            'email.email' => 'Email tidak valid',
-            'email.unique' => 'Email sudah terdaftar',
-            'no_telp.regex' => 'Nomor telepon tidak valid',
-            'id_jabatan.exists' => 'Jabatan tidak ditemukan',
-            'nip.unique' => 'NIP sudah terdaftar',
-            'tanggal_lahir.date' => 'Tanggal lahir tidak valid',
+                'nama.min' => 'Nama minimal 3 karakter',
+                'password.min' => 'Password minimal 8 karakter',
+                'email.email' => 'Email tidak valid',
+                'email.unique' => 'Email sudah terdaftar',
+                'no_telp.regex' => 'Nomor telepon tidak valid',
+                'id_jabatan.exists' => 'Jabatan tidak ditemukan',
+                'nip.unique' => 'NIP sudah terdaftar',
+                'tanggal_lahir.date' => 'Tanggal lahir tidak valid',
             ]);
 
             $user->nama = $request->nama ?? $user->nama;
             $user->email = $request->email ?? $user->email;
-            if($request->filled('password')){
+            if ($request->filled('password')) {
                 $user->password = Hash::make($request->password);
             }
             $user->no_telp = $request->no_telp ?? $user->no_telp;
-            if($request->filled('id_jabatan')){
+            if ($request->filled('id_jabatan')) {
                 $user->role = Jabatan::where('id_jabatan', $request->id_jabatan)->value('nama_jabatan');
             }
             $user->save();
@@ -189,13 +186,12 @@ class PegawaiController
             $pegawai->save();
 
             DB::commit();
-            
+
             return response()->json([
                 'status_code' => 200,
                 'message' => 'Pegawai berhasil diubah',
                 'data' => ['user' => $user, 'pegawai' => $pegawai,],
             ]);
-        
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['message' => 'Gagal: ' . $e->getMessage()], 500);
@@ -209,7 +205,7 @@ class PegawaiController
     {
         $pegawai = Pegawai::find($id);
 
-        if(!$pegawai){
+        if (!$pegawai) {
             return response()->json([
                 'message' => 'Pegawai tidak ditemukan',
                 'errors' => ['id' => 'Pegawai tidak ditemukan'],
@@ -223,6 +219,28 @@ class PegawaiController
         return response()->json([
             'status_code' => 200,
             'message' => 'Pegawai berhasil dihapus',
+        ]);
+    }
+
+    public function getAllKurir()
+    {
+        $kurir = Pegawai::with([
+            'user',
+            'jabatan'
+        ])->whereHas('jabatan', function ($query) {
+            $query->where('jabatan.nama_jabatan', 'Kurir');
+        })->get();
+
+        if (!$kurir) {
+            return response()->json([
+                'message' => 'Kurir tidak ditemukan',
+                'errors' => ['id' => 'Kurir tidak ditemukan'],
+            ], 404);
+        }
+
+        return response()->json([
+            'message' => 'Data Kurir',
+            'data' => $kurir
         ]);
     }
 }

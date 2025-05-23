@@ -17,6 +17,10 @@ use App\Http\Controllers\AlamatController;
 use App\Http\Controllers\DiskusiController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\NotifController;
+use App\Http\Controllers\KeranjangController;
+use App\Http\Controllers\DetailKeranjangController;
+use App\Http\Controllers\PengirimanController;
+use App\Models\Pengiriman;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -78,6 +82,10 @@ Route::group(['middleware' => ['auth:sanctum', 'cs']], function () {
 Route::group(['middleware' => ['auth:sanctum', 'gudang']], function () {
     Route::get('gudang/penitipan/produk-titipan', [PenitipanController::class, 'getProdukTitipan']);
     Route::patch('penitipan/pengambilan-produk-titipan/{id}', [PenitipanController::class, 'pengambilanProdukTitipan']);
+    Route::get('gudang/penjualan', [PenjualanController::class, 'index']);
+    Route::patch('gudang/penjadwalan-pengiriman/{id}', [PengirimanController::class, 'update']);
+    Route::get('gudang/get-all-kurir', [PegawaiController::class, 'getAllKurir']);
+    Route::get('gudang/get-pengiriman/{id}', [PengirimanController::class, 'show']);
     Route::get('penitipan/all', [PenitipanController::class, 'index']);
     Route::get('penitipan/detail/{id}', [PenitipanController::class, 'show']);
     Route::get('gudang/get-pegawai-qc', [PenitipanController::class, 'getPegawaiQC']);
@@ -90,8 +98,15 @@ Route::group(['middleware' => ['auth:sanctum', 'pembeli']], function () {
     Route::resource('penjualan', PenjualanController::class);
     Route::resource('alamat', AlamatController::class);
     Route::post('alamat/gantiAlamatUtama/{id}', [AlamatController::class, 'gantiAlamatUtama']);
-
     Route::get('diskusi/', [DiskusiController::class, 'index']);
+
+    // route untuk transaksi
+    Route::post('keranjang', [KeranjangController::class, 'store']);
+    Route::get('detail-keranjang', [DetailKeranjangController::class, 'show']);
+    Route::post('detail-keranjang', [DetailKeranjangController::class, 'store']);
+    Route::put('detail-keranjang', [DetailKeranjangController::class, 'update']);
+    Route::delete('detail-keranjang/{id}', [DetailKeranjangController::class, 'destroy']);
+    Route::post('detail-keranjang/destroy-all', [DetailKeranjangController::class, 'destroyAll']);
 });
 
 Route::group(['middleware' => ['auth:sanctum', 'penitip']], function () {

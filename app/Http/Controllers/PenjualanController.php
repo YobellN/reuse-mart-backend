@@ -22,31 +22,51 @@ class PenjualanController
         $user = $request->user();
         $status_penjualan = $request->query('status_penjualan');
 
-        if ($user->role !== 'Pembeli') {
-            return response()->json([
-                'message' => 'Akses ditolak: hanya role Pembeli yang diperbolehkan',
-            ], 403);
-        }
+        if ($user->role === 'Pembeli') {
+            $id_pembeli = $user->pembeli->id_pembeli;
+            $penjualan = Penjualan::with([
+                'pembeli.user',
+                'detail.produk.kategori',
+                'detail.produk.fotoProduk',
+                'pengiriman.alamat',
+                'pembayaran',
+            ])->where('id_pembeli', $id_pembeli)->when($status_penjualan, fn($q) => $q->where('status_penjualan', $status_penjualan))->orderBy('tanggal_penjualan', 'desc')->get();
 
-        $id_pembeli = $user->pembeli->id_pembeli;
-        $penjualan = Penjualan::with([
-            'pembeli.user',
-            'detail.produk.kategori',
-            'detail.produk.fotoProduk',
-            'pengiriman.alamat',
-            'pembayaran',
-        ])->where('id_pembeli', $id_pembeli)->when($status_penjualan, fn($q) => $q->where('status_penjualan', $status_penjualan))->orderBy('tanggal_penjualan', 'desc')->get();
+            if ($penjualan->isEmpty()) {
+                return response()->json([
+                    'message' => 'Tidak ada data penjualan',
+                ], 404);
+            }
 
-        if ($penjualan->isEmpty()) {
             return response()->json([
-                'message' => 'Tidak ada data penjualan',
+                'message' => 'Riwayat Penjualan',
+                'data' => $penjualan,
+            ]);
+        } else if ($user->role === 'Gudang') {
+            $metode_pengiriman = $request->query('metode_pengiriman');
+            $penjualan = Penjualan::with([
+                'pembeli.user',
+                'detail.produk.kategori',
+                'detail.produk.fotoProduk',
+                'pengiriman.alamat',
+                'pembayaran',
+            ])->when($status_penjualan, fn($q) => $q->where('status_penjualan', $status_penjualan))->when($metode_pengiriman, fn($q) => $q->where('metode_pengiriman', $metode_pengiriman))->orderBy('tanggal_penjualan', 'desc')->get();
+
+            if ($penjualan->isEmpty()) {
+                return response()->json([
+                    'message' => 'Tidak ada data penjualan',
+                ], 404);
+            }
+
+            return response()->json([
+                'message' => 'Riwayat Penjualan',
+                'data' => $penjualan,
+            ]);
+        } else {
+            return response()->json([
+                'message' => 'Tidak memiliki akses',
             ], 404);
         }
-
-        return response()->json([
-            'message' => 'Riwayat Penjualan',
-            'data' => $penjualan,
-        ]);
     }
 
     /**
@@ -70,7 +90,7 @@ class PenjualanController
      */
     public function show(string $id)
     {
-        //
+        
     }
 
     /**

@@ -8,6 +8,12 @@ class Pengiriman extends Model
 {
     protected $table = 'pengiriman';
 
+    public $timestamps = false;
+
+    protected $primaryKey = 'id_penjualan';
+
+    protected $keyType = 'string';
+
     protected $fillable = [
         'id_penjualan',
         'id_kurir',
