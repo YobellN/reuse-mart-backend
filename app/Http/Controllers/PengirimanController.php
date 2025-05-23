@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Pengiriman;
 use Illuminate\Http\Request;
 
 class PengirimanController
@@ -35,7 +36,24 @@ class PengirimanController
      */
     public function show(string $id)
     {
-        //
+        $pengiriman = Pengiriman::with([
+            'alamat',
+            'kurir.jabatan',
+            'kurir.user',
+            'penjualan'
+        ])->find($id);
+
+        if (!$pengiriman) {
+            return response()->json([
+                'message' => 'Pengiriman tidak ditemukan',
+                'errors' => ['id' => 'Pengiriman tidak ditemukan'],
+            ], 404);
+        }
+
+        return response()->json([
+            'message' => 'Detail Pengiriman',
+            'data' => $pengiriman
+        ]);
     }
 
     /**
@@ -51,7 +69,34 @@ class PengirimanController
      */
     public function update(Request $request, string $id)
     {
-        //
+        $pengiriman = Pengiriman::with([
+            'alamat',
+            'kurir',
+            'penjualan'
+        ])->find($id);
+
+        $validated = $request->validate([
+            'id_kurir' => 'sometimes|exists:pegawai,id_pegawai',
+            'jadwal_pengiriman' => 'sometimes|date',
+        ], [
+            'id_kurir.exists' => 'Kurir tidak ditemukan',
+            'jadwal_pengiriman.date' => 'Jadwal pengiriman tidak valid',
+        ]);
+
+        $pengiriman->update([
+            'id_kurir' => $validated['id_kurir'],
+            'jadwal_pengiriman' => $validated['jadwal_pengiriman'],
+            'status_pengiriman' => 'Menunggu Kurir',
+        ]);
+
+        $pengiriman->penjualan()->update([
+            'status_penjualan' => 'Dikirim'
+        ]);
+
+        return response()->json([
+            'message' => 'Pengiriman berhasil dijadwalkan',
+            'data' => $pengiriman
+        ], 200);
     }
 
     /**

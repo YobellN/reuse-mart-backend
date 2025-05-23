@@ -90,7 +90,7 @@ class PenjualanController
      */
     public function show(string $id)
     {
-        //
+        
     }
 
     /**

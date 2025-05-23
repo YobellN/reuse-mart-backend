@@ -34,6 +34,8 @@ RUN composer install && \
     composer require laravel/octane && \
     php artisan octane:install --server=frankenphp 
 
+RUN php artisan storage:link
+
 EXPOSE 8000
 
 CMD php artisan octane:start --server=frankenphp --host=0.0.0.0 --port=8000

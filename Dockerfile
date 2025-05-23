@@ -28,7 +28,9 @@ RUN apt update && apt install -y \
     xml \
     bcmath
 
-
 COPY --from=composer:2.2 /usr/bin/composer /usr/bin/composer
 
 RUN composer install
+
+# Pastikan storage link dibuat
+RUN mkdir -p storage/app/public && php artisan storage:link

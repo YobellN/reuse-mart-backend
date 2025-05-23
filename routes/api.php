@@ -17,6 +17,8 @@ use App\Http\Controllers\AlamatController;
 use App\Http\Controllers\DiskusiController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\NotifController;
+use App\Http\Controllers\PengirimanController;
+use App\Models\Pengiriman;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -79,6 +81,9 @@ Route::group(['middleware' => ['auth:sanctum', 'gudang']], function () {
     Route::get('gudang/penitipan/produk-titipan', [PenitipanController::class, 'getProdukTitipan']);
     Route::patch('penitipan/pengambilan-produk-titipan/{id}', [PenitipanController::class, 'pengambilanProdukTitipan']);
     Route::get('gudang/penjualan', [PenjualanController::class, 'index']);
+    Route::patch('gudang/penjadwalan-pengiriman/{id}', [PengirimanController::class, 'update']);
+    Route::get('gudang/get-all-kurir', [PegawaiController::class, 'getAllKurir']);
+    Route::get('gudang/get-pengiriman/{id}', [PengirimanController::class, 'show']);
 });
 
 

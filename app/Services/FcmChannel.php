@@ -10,12 +10,12 @@ class FcmChannel
     public static function send(string $deviceToken, string $title, string $body)
     {
         $client = new Client();
-
+        $projectId = config('services.firebase.project_id');
         $response = $client->post(
-            'https://fcm.googleapis.com/v1/projects/' . env('FIREBASE_PROJECT_ID') . '/messages:send',
+            'https://fcm.googleapis.com/v1/projects/' . $projectId . '/messages:send',
             [
                 'headers' => [
-                    'Authorization' => 'Bearer ' . self::getAccessToken(),
+                    'Authorization' => 'Bearer ' . static::getAccessToken(),
                     'Content-Type'  => 'application/json',
                 ],
                 'json' => [
