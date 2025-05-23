@@ -80,6 +80,9 @@ Route::group(['middleware' => ['auth:sanctum', 'gudang']], function () {
     Route::patch('penitipan/pengambilan-produk-titipan/{id}', [PenitipanController::class, 'pengambilanProdukTitipan']);
     Route::get('penitipan/all', [PenitipanController::class, 'index']);
     Route::get('penitipan/detail/{id}', [PenitipanController::class, 'show']);
+    Route::get('gudang/get-pegawai-qc', [PenitipanController::class, 'getPegawaiQC']);
+    Route::get('gudang/get-pegawai-hunter', [PenitipanController::class, 'getPegawaiHunter']);
+    Route::get('penitip', [PenitipController::class, 'index']);
 });
 
 

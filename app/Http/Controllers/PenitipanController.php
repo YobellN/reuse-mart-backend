@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Produk;
+use App\Models\Pegawai;
 use App\Models\Penitipan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -13,7 +14,7 @@ class PenitipanController
      * Display a listing of the resource.
      */
     public function index(Request $request) {
-        $penitipan = Penitipan::with('penitip.user', 'qc.user', 'hunter.user', 'detailPenitipan.produk.kategori')->get();
+        $penitipan = Penitipan::with('penitip.user', 'qc.user', 'hunter.user','detailPenitipan.produk.fotoProduk',  'detailPenitipan.produk.kategori')->get();
 
         return response()->json([
             'message' => 'Data Penitipan',
@@ -119,6 +120,40 @@ class PenitipanController
         return response()->json([
             'message' => 'Berhasil mendapatkan data penitipan',
             'data' => $data
+        ], 200);
+    }
+
+    public function getPegawaiQC(Request $request)
+    {
+        $pegawai = Pegawai::with('user', 'jabatan')->where('id_jabatan', 3)->get();
+
+        if(!$pegawai) {
+            return response()->json([
+                'message' => 'Pegawai tidak ditemukan',
+                'errors'  => ['id' => 'Pegawai tidak ditemukan'],
+            ], 404);
+        }
+        
+        return response()->json([
+            'message' => 'Data Pegawai',
+            'data' => $pegawai
+        ], 200);
+    }
+
+    public function getPegawaiHunter(Request $request)
+    {
+        $pegawai = Pegawai::with('user', 'jabatan')->where('id_jabatan', 1)->get();
+
+        if(!$pegawai) {
+            return response()->json([
+                'message' => 'Pegawai tidak ditemukan',
+                'errors'  => ['id' => 'Pegawai tidak ditemukan'],
+            ], 404);
+        }
+
+        return response()->json([
+            'message' => 'Data Pegawai',
+            'data' => $pegawai
         ], 200);
     }
 
