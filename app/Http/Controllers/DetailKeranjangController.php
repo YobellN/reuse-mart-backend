@@ -71,8 +71,7 @@ class DetailKeranjangController
 
             $detailKeranjang = DetailKeranjang::create([
                 'id_keranjang' => $id_keranjang,
-                'id_produk' => $request->id_produk,
-                'status' => 1
+                'id_produk' => $request->id_produk
             ]);
 
             return response()->json([
@@ -143,61 +142,59 @@ class DetailKeranjangController
     public function update(Request $request)
     {
         // Mengecek user yang sedang login
-        $user = $request->user();
-        if ($user->role !== 'Pembeli') {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Anda tidak memiliki izin store detail keranjang'
-            ], 403);
-        }
+        // $user = $request->user();
+        // if ($user->role !== 'Pembeli') {
+        //     return response()->json([
+        //         'status' => 'error',
+        //         'message' => 'Anda tidak memiliki izin store detail keranjang'
+        //     ], 403);
+        // }
 
-        // Validasi input
-        $request->validate([
-            'id_produk' => 'required|exists:produk,id_produk',
-            'status' => 'required|in:0,1',
-        ], [
-            'id_produk.required' => 'ID produk tidak boleh kosong',
-            'id_produk.exists' => 'ID produk tidak ditemukan',
-            'status.required' => 'Status tidak boleh kosong',
-        ]);
+        // // Validasi input
+        // $request->validate([
+        //     'id_produk' => 'required|exists:produk,id_produk',
+        // ], [
+        //     'id_produk.required' => 'ID produk tidak boleh kosong',
+        //     'id_produk.exists' => 'ID produk tidak ditemukan',
+        // ]);
 
-        // mengambil id keranjang dari pembeli
-        $pembeli = $user->pembeli;
-        if ($pembeli) {
-            $keranjang = $pembeli->keranjang;
-            if (!$keranjang) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Keranjang tidak ditemukan'
-                ], 404);
-            }
-            $affected = DetailKeranjang::where('id_keranjang', $keranjang->id_keranjang)
-                ->where('id_produk', $request->id_produk)
-                ->update(['status' => $request->status]);
+        // // mengambil id keranjang dari pembeli
+        // $pembeli = $user->pembeli;
+        // if ($pembeli) {
+        //     $keranjang = $pembeli->keranjang;
+        //     if (!$keranjang) {
+        //         return response()->json([
+        //             'status' => 'error',
+        //             'message' => 'Keranjang tidak ditemukan'
+        //         ], 404);
+        //     }
+        //     $affected = DetailKeranjang::where('id_keranjang', $keranjang->id_keranjang)
+        //         ->where('id_produk', $request->id_produk)
+        //         ->update(['status' => $request->status]);
 
-            if ($affected === 0) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Produk tidak ditemukan di dalam keranjang'
-                ], 404);
-            }
+        //     if ($affected === 0) {
+        //         return response()->json([
+        //             'status' => 'error',
+        //             'message' => 'Produk tidak ditemukan di dalam keranjang'
+        //         ], 404);
+        //     }
 
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Status produk dalam keranjang berhasil diperbarui'
-            ], 200);
-        } else {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'User bukan pembeli'
-            ], 403);
-        }
+        //     return response()->json([
+        //         'status' => 'success',
+        //         'message' => 'Status produk dalam keranjang berhasil diperbarui'
+        //     ], 200);
+        // } else {
+        //     return response()->json([
+        //         'status' => 'error',
+        //         'message' => 'User bukan pembeli'
+        //     ], 403);
+        // }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(request $request)
+    public function destroy(request $request, $id)
     {
         // Mengecek user yang sedang login
         $user = $request->user();
@@ -208,14 +205,6 @@ class DetailKeranjangController
             ], 403);
         }
 
-        // Validasi input
-        $request->validate([
-            'id_produk' => 'required|exists:produk,id_produk',
-        ], [
-            'id_produk.required' => 'ID produk tidak boleh kosong',
-            'id_produk.exists' => 'ID produk tidak ditemukan',
-        ]);
-
         // mengambil id keranjang dari pembeli
         $pembeli = $user->pembeli;
         if ($pembeli) {
@@ -227,7 +216,7 @@ class DetailKeranjangController
                 ], 404);
             }
             $affected = DetailKeranjang::where('id_keranjang', $keranjang->id_keranjang)
-                ->where('id_produk', $request->id_produk)
+                ->where('id_produk', $id)
                 ->delete();
 
             if ($affected === 0) {
@@ -239,7 +228,7 @@ class DetailKeranjangController
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Status produk dalam keranjang berhasil dihapus'
+                'message' => 'Produk dalam keranjang berhasil dihapus'
             ], 200);
         } else {
             return response()->json([
@@ -247,6 +236,7 @@ class DetailKeranjangController
                 'message' => 'User bukan pembeli'
             ], 403);
         }
+
     }
 
     /**

@@ -95,7 +95,7 @@ Route::group(['middleware' => ['auth:sanctum', 'pembeli']], function () {
     Route::get('detail-keranjang', [DetailKeranjangController::class, 'show']);
     Route::post('detail-keranjang', [DetailKeranjangController::class, 'store']);
     Route::put('detail-keranjang', [DetailKeranjangController::class, 'update']);
-    Route::delete('detail-keranjang', [DetailKeranjangController::class, 'destroy']);
+    Route::delete('detail-keranjang/{id}', [DetailKeranjangController::class, 'destroy']);
     Route::post('detail-keranjang/destroy-all', [DetailKeranjangController::class, 'destroyAll']);
 });
 
