@@ -95,6 +95,7 @@ Route::group(['middleware' => ['auth:sanctum', 'gudang']], function () {
     Route::get('penitip', [PenitipController::class, 'index']);
 
     //transaksi penitipan di gudang
+    Route::post('gudang/new-penitipan', [PenitipanController::class, 'store']);
 });
 
 

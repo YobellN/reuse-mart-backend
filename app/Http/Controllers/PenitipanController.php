@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\FotoProduk;
 use App\Models\Produk;
 use App\Models\Pegawai;
+use App\Models\Penitip;
 use App\Models\Penitipan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -40,6 +42,121 @@ class PenitipanController
         DB::beginTransaction();
 
         try{
+            $request->validate([
+                //bagian penitipan
+                'id_penitip' => 'required|exists:penitip,id_penitip',
+                'id_qc' => 'required|exists:pegawai,id_pegawai',
+                'id_hunter' => 'nullable|exists:pegawai,id_pegawai',
+                'tanggal_penitipan' => 'required|date',
+                //bagian array produk
+                'produk' => 'required|array|min:1',
+                'produk.*.nama_produk' => 'required|string|min:3',
+                'produk.*.deskripsi_produk' => 'required|string',
+                'produk.*.id_kategori' => 'required|exists:kategori_produk,id_kategori',
+                'produk.*.harga_produk' => 'required|numeric',
+                'produk.*.waktu_garansi' => 'nullable|date',
+                //bagian foto produk
+                'produk.*.foto_produk' => 'required|array|min:2|max:10',
+                'produk.*.foto_produk.*.path_foto' => 'required|file|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+
+            ],[
+                'id_penitip.required' => 'Penitip tidak boleh kosong',
+                'id_penitip.exists' => 'Penitip tidak ditemukan',
+                'id_qc.required' => 'QC tidak boleh kosong',
+                'id_qc.exists' => 'QC tidak ditemukan',
+                'id_hunter.exists' => 'Hunter tidak ditemukan',
+                'tanggal_penitipan.required' => 'Tanggal penitipan tidak boleh kosong',
+                'tanggal_penitipan.date' => 'Tanggal penitipan harus berupa tanggal',
+                'produk.required' => 'Produk tidak boleh kosong',
+                'produk.min' => 'Minimal 1 produk',
+                'produk.*.nama_produk.required' => 'Nama produk tidak boleh kosong',
+                'produk.*.deskripsi_produk.required' => 'Deskripsi produk tidak boleh kosong',
+                'produk.*.id_kategori.required' => 'Kategori produk tidak boleh kosong',
+                'produk.*.id_kategori.exists' => 'Kategori produk tidak ditemukan',
+                'produk.*.harga_produk.required' => 'Harga produk tidak boleh kosong',
+                'produk.*.harga_produk.numeric' => 'Harga produk harus berupa angka',    
+                'produk.*.waktu_garansi.date' => 'Waktu garansi harus berupa tanggal',
+                'produk.*.foto_produk.required' => 'Foto produk tidak boleh kosong',
+                'produk.*.foto_produk.min' => 'Minimal 2 foto produk',
+                'produk.*.foto_produk.max' => 'Maksimal 10 foto produk',
+                'produk.*.foto_produk.*.path_foto.image' => 'Foto produk harus berupa gambar',
+                'produk.*.foto_produk.*.path_foto.max' => 'Maksimal 2MB untuk foto produk',
+            ]);
+
+
+            //bagian insert data penitipan saja
+
+            $carbonDate = Carbon::parse($request->tanggal_penitipan);
+            $prefix = $carbonDate->format('y.m') . '.';
+            $id_penitipan = IdGenerator::generate(Penitipan::class, 'id_penitipan', 4, $prefix);
+
+            $tenggat_penitipan = $carbonDate->copy()->addDays(30);
+            $tenggat_pengambilan = $tenggat_penitipan->copy()->addDays(7);
+
+            $penitipan =  Penitipan::create([
+                'id_penitipan' => $id_penitipan,
+                'id_penitip' => $request->id_penitip,
+                'id_qc' => $request->id_qc,
+                'id_hunter' => $request->id_hunter,
+                'tanggal_penitipan' => $carbonDate->format('Y-m-d H:i:s'),
+                'tenggat_penitipan' => $tenggat_penitipan,
+                'tenggat_pengambilan' => $tenggat_pengambilan,
+            ]);
+
+            //bagian insert data produknya
+            $status_hunting = $penitipan->id_hunter ? 1 : 0;
+            foreach($request->produk as $item){
+                $id_produk = IdGenerator::generate(Produk::class, 'id_produk', 4, 'K');
+                
+                $produk = Produk::create([
+                    'id_penitipan' => $penitipan->id_penitipan,
+                    'id_produk' => $id_produk,
+                    'nama_produk' => $item['nama_produk'],
+                    'deskripsi_produk' => $item['deskripsi_produk'],
+                    'id_kategori' => $item['id_kategori'],
+                    'harga_produk' => $item['harga_produk'],
+                    'status_ketersediaan' => 1,
+                    'waktu_garansi' => $item['waktu_garansi'] 
+                                    ? Carbon::parse($item['waktu_garansi']) 
+                                    : null,
+                    'status_produk_hunting' => $status_hunting,
+                ]);
+
+                //bagian insert foto
+
+                foreach($item['foto_produk'] as $i =>$foto){
+
+                    $file = $foto['path_foto'];
+
+                    if (!($file instanceof \Illuminate\Http\UploadedFile)) {
+                        return response()->json([
+                            'status_code' => 422,
+                            'message' => 'File tidak valid',
+                            'errors' => ['path_foto' => 'File harus berupa gambar yang diupload'],
+                        ], 422);
+                    }
+
+                    $file = $foto->file('path_foto');
+                    $file_name = $id_produk . '_' . ($i+1) . '.' . $file->getClientOriginalExtension();
+                    $path = $file->storeAs('foto_produk', $file_name, 'public');
+
+                    FotoProduk::create(
+                        [
+                            'id_produk' => $produk->id_produk,
+                            'path_foto' => str_replace('foto_produk/', '', $path),
+                            'thumbnail' => $i === 0 ? 1 : 0,
+                        ]
+                        );
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Penitipan berhasil ditambahkan',
+                'data' => $penitipan
+            ], 200);
+           
 
         }catch(\Exception $e){
             DB::rollBack();
