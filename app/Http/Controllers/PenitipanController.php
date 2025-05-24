@@ -7,6 +7,8 @@ use App\Models\Pegawai;
 use App\Models\Penitipan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
+use Omaressaouaf\LaravelIdGenerator\IdGenerator;
 
 class PenitipanController
 {
@@ -35,7 +37,14 @@ class PenitipanController
      */
     public function store(Request $request)
     {
-        //
+        DB::beginTransaction();
+
+        try{
+
+        }catch(\Exception $e){
+            DB::rollBack();
+            return response()->json(['message' => 'Gagal: ' . $e->getMessage()], 500);
+        }
     }
 
     /**
