@@ -7,6 +7,7 @@ use App\Models\Produk;
 use App\Models\Pegawai;
 use App\Models\Penitip;
 use App\Models\Penitipan;
+use App\Models\DetailPenitipan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -109,7 +110,6 @@ class PenitipanController
                 $id_produk = IdGenerator::generate(Produk::class, 'id_produk', 4, 'K');
                 
                 $produk = Produk::create([
-                    'id_penitipan' => $penitipan->id_penitipan,
                     'id_produk' => $id_produk,
                     'nama_produk' => $item['nama_produk'],
                     'deskripsi_produk' => $item['deskripsi_produk'],
@@ -122,8 +122,13 @@ class PenitipanController
                     'status_produk_hunting' => $status_hunting,
                 ]);
 
-                //bagian insert foto
+                //insert ke tabel detail_penitipan
+                DetailPenitipan::create([
+                    'id_penitipan' => $penitipan->id_penitipan,
+                    'id_produk' => $produk->id_produk,
+                ]);
 
+                //bagian insert foto
                 foreach($item['foto_produk'] as $i =>$foto){
 
                     $file = $foto['path_foto'];
