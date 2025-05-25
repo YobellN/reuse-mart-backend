@@ -20,7 +20,6 @@ use App\Http\Controllers\NotifController;
 use App\Http\Controllers\KeranjangController;
 use App\Http\Controllers\DetailKeranjangController;
 use App\Http\Controllers\PengirimanController;
-use App\Models\Pengiriman;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
