@@ -88,6 +88,8 @@ Route::group(['middleware' => ['auth:sanctum', 'gudang']], function () {
     Route::patch('gudang/penjadwalan-pengiriman/{id}', [PengirimanController::class, 'update']);
     Route::get('gudang/get-all-kurir', [PegawaiController::class, 'getAllKurir']);
     Route::get('gudang/get-pengiriman/{id}', [PengirimanController::class, 'show']);
+    Route::patch('gudang/penjadwalan-pengambilan/{id}', [PengirimanController::class, 'jadwalkanPengambilan']);
+    Route::patch('gudang/konfirmasi-pengambilan-transaksi/{id}', [PengirimanController::class, 'konfirmasiPengambilanTransaksi']);
     Route::get('penitipan/all', [PenitipanController::class, 'index']);
     Route::get('penitipan/detail/{id}', [PenitipanController::class, 'show']);
 

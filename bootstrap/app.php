@@ -32,7 +32,10 @@ return Application::configure(basePath: dirname(__DIR__))
             ->withoutOverlapping()
             ->sendOutputTo(storage_path('logs/batal.log'))
             ->emailOutputOnFailure('you@example.com'); // opsional, jika punya mail setup
-
+        $schedule->command('app:pengambilan-transaksi-expired')
+            ->everyMinute()
+            ->withoutOverlapping()
+            ->sendOutputTo(storage_path('logs/pengambilan-expired.log'));
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
