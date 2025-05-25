@@ -10,6 +10,7 @@ use App\Models\Penjualan;
 use Illuminate\Http\Request;
 use App\Models\DetailPenjualan;
 use App\Services\PenjualanService;
+use App\Http\Controllers\DetailKeranjangController;
 
 class PenjualanController
 {
@@ -44,13 +45,28 @@ class PenjualanController
             ]);
         } else if ($user->role === 'Gudang') {
             $metode_pengiriman = $request->query('metode_pengiriman');
+
             $penjualan = Penjualan::with([
                 'pembeli.user',
                 'detail.produk.kategori',
                 'detail.produk.fotoProduk',
                 'pengiriman.alamat',
                 'pembayaran',
-            ])->when($status_penjualan, fn($q) => $q->where('status_penjualan', $status_penjualan))->when($metode_pengiriman, fn($q) => $q->where('metode_pengiriman', $metode_pengiriman))->orderBy('tanggal_penjualan', 'desc')->get();
+            ])
+                ->when($metode_pengiriman, function ($query) use ($metode_pengiriman) {
+                    return $query->where('metode_pengiriman', $metode_pengiriman);
+                })
+                ->whereHas('pembayaran', function ($query) {
+                    $query->where('status_pembayaran', 'Lunas');
+                })
+                ->when($status_penjualan, function ($query) use ($status_penjualan) {
+                    return $status_penjualan === 'Selesai'
+                        ? $query->whereIn('status_penjualan', ['Selesai', 'Dikirim', 'Hangus', 'Menunggu Pengambilan'])
+                        : $query->where('status_penjualan', $status_penjualan);
+                })
+                ->orderBy('tanggal_penjualan', 'desc')
+                ->get();
+
 
             if ($penjualan->isEmpty()) {
                 return response()->json([
@@ -82,16 +98,86 @@ class PenjualanController
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'metode_pengiriman' => 'required|in:Ambil di gudang,Antar Kurir',
+            'poin_potongan' => 'nullable|integer|min:0',
+            'id_alamat' => 'nullable|exists:alamat,id_alamat',
+            // 'status_penjualan' => 'required|string|max:20|in:Menunggu Pembayaran,Diproses,Disiapkan,Dikirim,Selesai,Batal,Hangus',
+        ]);
+
+        // Ambil user login
+        $user = $request->user();
+        if (!$user || $user->role !== 'Pembeli') {
+            return response()->json(['message' => 'Hanya pembeli yang dapat melakukan penjualan'], 403);
+        }
+
+        $pembeli = $user->pembeli;
+        if (!$pembeli) {
+            return response()->json(['message' => 'Data pembeli tidak ditemukan'], 404);
+        }
+
+        // Panggil controller DetailKeranjangController@getTotalHarga
+        $detailKeranjangController = new DetailKeranjangController();
+
+        // Simulasi Request baru agar bisa digunakan oleh fungsi getTotalHarga
+        $requestData = new Request([
+            'poinKepakai' => $request->poin_potongan ?? 0,
+            'metode_pengambilan' => $request->metode_pengiriman,
+        ]);
+
+        $requestData->setUserResolver(function () use ($user) {
+            return $user;
+        });
+
+        // Jalankan fungsi getTotalHarga
+        $response = $detailKeranjangController->getTotalHarga($requestData);
+        $responseData = $response->getData();
+
+        if ($responseData->status !== 'success') {
+            return response()->json(['message' => 'Gagal menghitung harga'], 500);
+        }
+
+        $harga = $responseData->data;
+
+        // Simpan data penjualan
+        $penjualan = Penjualan::create([
+            'id_pembeli' => $pembeli->id_pembeli,
+            'tanggal_penjualan' => now(),
+            'metode_pengiriman' => $request->metode_pengiriman,
+            'jadwal_pengambilan' => null,
+            'total_ongkir' => $harga->ongkir,
+            'poin_potongan' => $harga->poin_dipakai,
+            'total_harga' => $harga->total_akhir,
+            'poin_perolehan' => $harga->poin,
+            'total_poin' => $pembeli->poin - $harga->poin_dipakai + $harga->poin, // Poin saat ini - poin yang dipakai + poin yang didapat
+            'status_penjualan' => 'Menunggu Pembayaran',
+            'tenggat_pembayaran' => now()->addMinutes(15),
+        ]);
+
+        // menyamakan poin pembeli dengan total poin setelah transaksi
+        $pembeli->poin = $penjualan->total_poin;
+
+        // membuat pengiriman jika metode pengiriman adalah "Antar Kurir"
+        if ($request->metode_pengiriman === 'Antar Kurir') {
+            $penjualan->pengiriman()->create([
+                'id_kurir' => null, // Kurir akan ditentukan kemudian
+                'id_alamat' => $request->id_alamat ?? $pembeli->alamat_utama->id_alamat,
+                'jadwal_pengiriman' => null,
+                'status_pengiriman' => 'Disiapkan',
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Penjualan berhasil dibuat',
+            'data' => $penjualan,
+        ]);
     }
+
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
-    {
-        
-    }
+    public function show(string $id) {}
 
     /**
      * Show the form for editing the specified resource.

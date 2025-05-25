@@ -112,9 +112,9 @@ class DetailKeranjangController
             $detailKeranjang = DetailKeranjang::with('produk')->where('id_keranjang', $id_keranjang)->get();
             if ($detailKeranjang->isEmpty()) {
                 return response()->json([
-                    'status' => 'error',
-                    'message' => 'Detail keranjang tidak ditemukan'
-                ], 404);
+                    'status' => 'success',
+                    'data' => []
+                ], 200);
             }
             return response()->json([
                 'status' => 'success',
@@ -141,54 +141,7 @@ class DetailKeranjangController
      */
     public function update(Request $request)
     {
-        // Mengecek user yang sedang login
-        // $user = $request->user();
-        // if ($user->role !== 'Pembeli') {
-        //     return response()->json([
-        //         'status' => 'error',
-        //         'message' => 'Anda tidak memiliki izin store detail keranjang'
-        //     ], 403);
-        // }
-
-        // // Validasi input
-        // $request->validate([
-        //     'id_produk' => 'required|exists:produk,id_produk',
-        // ], [
-        //     'id_produk.required' => 'ID produk tidak boleh kosong',
-        //     'id_produk.exists' => 'ID produk tidak ditemukan',
-        // ]);
-
-        // // mengambil id keranjang dari pembeli
-        // $pembeli = $user->pembeli;
-        // if ($pembeli) {
-        //     $keranjang = $pembeli->keranjang;
-        //     if (!$keranjang) {
-        //         return response()->json([
-        //             'status' => 'error',
-        //             'message' => 'Keranjang tidak ditemukan'
-        //         ], 404);
-        //     }
-        //     $affected = DetailKeranjang::where('id_keranjang', $keranjang->id_keranjang)
-        //         ->where('id_produk', $request->id_produk)
-        //         ->update(['status' => $request->status]);
-
-        //     if ($affected === 0) {
-        //         return response()->json([
-        //             'status' => 'error',
-        //             'message' => 'Produk tidak ditemukan di dalam keranjang'
-        //         ], 404);
-        //     }
-
-        //     return response()->json([
-        //         'status' => 'success',
-        //         'message' => 'Status produk dalam keranjang berhasil diperbarui'
-        //     ], 200);
-        // } else {
-        //     return response()->json([
-        //         'status' => 'error',
-        //         'message' => 'User bukan pembeli'
-        //     ], 403);
-        // }
+        // 
     }
 
     /**
@@ -236,7 +189,6 @@ class DetailKeranjangController
                 'message' => 'User bukan pembeli'
             ], 403);
         }
-
     }
 
     /**
@@ -277,6 +229,88 @@ class DetailKeranjangController
             return response()->json([
                 'status' => 'success',
                 'message' => 'Semua produk dalam keranjang berhasil dihapus'
+            ], 200);
+        } else {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'User bukan pembeli'
+            ], 403);
+        }
+    }
+
+    // Mengambil semua total harga dari detail keranjang
+    public function getTotalHarga(Request $request)
+    {
+        // Validasi input poinKepakai
+        $validated = $request->validate([
+            'poinKepakai' => 'required|integer|min:0',
+            'metode_pengambilan' => 'required|in:Ambil di gudang,Antar Kurir',
+        ]);
+        $poinKepakai = $validated['poinKepakai'];
+        $metodePengambilan = $validated['metode_pengambilan'];
+
+        // Mengecek user yang sedang login
+        $user = $request->user();
+        if ($user->role !== 'Pembeli') {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Anda tidak memiliki izin untuk melihat total harga'
+            ], 403);
+        }
+
+        // mengambil id keranjang dari pembeli
+        $pembeli = $user->pembeli;
+        if ($pembeli) {
+            $keranjang = Keranjang::where('id_pembeli', $pembeli->id_pembeli)->first();
+            if (!$keranjang) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Keranjang tidak ditemukan'
+                ], 404);
+            }
+
+            // Mengambil semua detail keranjang beserta produk
+            $detailKeranjang = DetailKeranjang::with('produk')
+                ->where('id_keranjang', $keranjang->id_keranjang)
+                ->get();
+
+            // Menjumlahkan total harga semua produk di keranjang
+            $totalHarga = $detailKeranjang->sum(function ($item) {
+                return $item->produk->harga_produk ?? 0;
+            });
+
+            // menghitung poin yang diperoleh dari total harga
+            // 1 poin = 10.000, bonus 20% jika > 500.000
+            $poin = floor($totalHarga / 10000);
+            if ($totalHarga > 500000) {
+                $poin += floor($poin * 0.2); // bonus 20%
+            }
+
+            // menghitung ongkir jika metode pengambilan adalah Antar Kurir
+            $ongkir = 0;
+            if ($metodePengambilan === 'Antar Kurir') {
+                // Ongkir gratis jika total >= 1.5 juta, selain itu 100 ribu
+                $ongkir = $totalHarga >= 1500000 ? 0 : 100000;
+            }
+
+            // mengurangkan poinKepakai dari totalHarga jika ada
+            $diskon = $poinKepakai * 100; // 1 poin = 100 diskon
+            $totalHargaSetelahDiskon = max($totalHarga - $diskon, 0); // jaga-jaga agar tidak minus
+
+            // total akhir termasuk ongkir
+            $totalAkhir = $totalHargaSetelahDiskon + $ongkir;
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Total harga berhasil dihitung',
+                'data' => [
+                    'poin' => $poin,
+                    'poin_dipakai' => $poinKepakai,
+                    'diskon' => $diskon,
+                    'ongkir' => $ongkir,
+                    'total_harga' => $totalHarga,
+                    'total_akhir' => $totalAkhir
+                ]
             ], 200);
         } else {
             return response()->json([

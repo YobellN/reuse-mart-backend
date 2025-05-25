@@ -19,7 +19,6 @@ class DetailKeranjang extends Model
     protected $fillable = [
         'id_keranjang',
         'id_produk',
-        'status'
     ];
 
     public function keranjang()

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Penjualan extends Model
 {
@@ -41,6 +42,31 @@ class Penjualan extends Model
         'total_poin' => 'integer',
         'tenggat_pembayaran' => 'datetime',
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            $tahun = now()->format('y');
+            $bulan = now()->format('m');
+            $prefix = "{$tahun}.{$bulan}.";
+
+            $lastId = DB::table('penjualan')
+                ->where('id_penjualan', 'like', "{$prefix}%")
+                ->orderByDesc('id_penjualan')
+                ->value('id_penjualan');
+
+            if ($lastId) {
+                $lastNumber = (int) substr($lastId, -4);
+            } else {
+                $lastNumber = 0;
+            }
+
+            $nextNumber = str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
+            $model->id_penjualan = "{$tahun}.{$bulan}.{$nextNumber}";
+        });
+    }
 
     public function pengiriman() 
     {

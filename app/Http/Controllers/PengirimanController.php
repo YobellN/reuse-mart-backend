@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Penjualan;
 use App\Models\Pengiriman;
 use Illuminate\Http\Request;
 
@@ -93,9 +94,17 @@ class PengirimanController
             'status_penjualan' => 'Dikirim'
         ]);
 
+        $penjualan = Penjualan::with([
+            'pembeli.user',
+            'detail.produk.kategori',
+            'detail.produk.fotoProduk',
+            'pengiriman.alamat',
+            'pembayaran',
+        ])->find($pengiriman->id_penjualan);
+
         return response()->json([
             'message' => 'Pengiriman berhasil dijadwalkan',
-            'data' => $pengiriman
+            'data' => $penjualan
         ], 200);
     }
 

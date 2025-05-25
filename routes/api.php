@@ -21,6 +21,7 @@ use App\Http\Controllers\KeranjangController;
 use App\Http\Controllers\DetailKeranjangController;
 use App\Http\Controllers\PengirimanController;
 use App\Models\Pengiriman;
+use App\Http\Controllers\PembeliController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -69,11 +70,12 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 });
 
 Route::group(['middleware' => ['auth:sanctum', 'cs']], function () {
-    Route::get('penitip', [PenitipController::class, 'index']);
-    Route::post('penitip', [PenitipController::class, 'store']);
-    Route::delete('penitip/{id}', [PenitipController::class, 'destroy']);
-    Route::put('penitip/{id}', [PenitipController::class, 'update']);
-    Route::patch('penitip/{id}', [PenitipController::class, 'update']);
+    Route::get('cs/penitip', [PenitipController::class, 'index']);
+    Route::get('cs/penitip/{id}', [PenitipController::class, 'show']);
+    Route::post('cs/penitip', [PenitipController::class, 'store']);
+    Route::delete('cs/penitip/{id}', [PenitipController::class, 'destroy']);
+    Route::put('cs/penitip/{id}', [PenitipController::class, 'update']);
+    Route::patch('cs/penitip/{id}', [PenitipController::class, 'update']);
 
     Route::get('diskusi/', [DiskusiController::class, 'index']);
     Route::delete('diskusi/{id}', [DiskusiController::class, 'destroy']);
@@ -112,6 +114,11 @@ Route::group(['middleware' => ['auth:sanctum', 'pembeli']], function () {
     Route::put('detail-keranjang', [DetailKeranjangController::class, 'update']);
     Route::delete('detail-keranjang/{id}', [DetailKeranjangController::class, 'destroy']);
     Route::post('detail-keranjang/destroy-all', [DetailKeranjangController::class, 'destroyAll']);
+
+    // POIN
+    Route::get('poinPembeli', [PembeliController::class, 'getPoinPembeli']);
+    Route::post('getTotalHarga', [DetailKeranjangController::class, 'getTotalHarga']);
+
 });
 
 Route::group(['middleware' => ['auth:sanctum', 'penitip']], function () {
