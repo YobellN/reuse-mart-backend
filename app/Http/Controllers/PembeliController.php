@@ -61,4 +61,22 @@ class PembeliController
     {
         //
     }
+
+    public function getPoinPembeli(Request $request)
+    {
+        $user = $request->user();
+        $pembeli = $user->pembeli;
+
+        if (!$pembeli) {
+            return response()->json([
+                'message' => 'Pembeli tidak ditemukan',
+                'errors' => ['id' => 'Pembeli tidak ditemukan']
+            ], 404);
+        }
+
+        return response()->json([
+            'message' => 'Data Poin Pembeli',
+            'data' => $pembeli->poin,
+        ]);
+    }
 }

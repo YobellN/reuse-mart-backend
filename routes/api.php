@@ -21,6 +21,7 @@ use App\Http\Controllers\KeranjangController;
 use App\Http\Controllers\DetailKeranjangController;
 use App\Http\Controllers\PengirimanController;
 use App\Models\Pengiriman;
+use App\Http\Controllers\PembeliController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -112,6 +113,11 @@ Route::group(['middleware' => ['auth:sanctum', 'pembeli']], function () {
     Route::put('detail-keranjang', [DetailKeranjangController::class, 'update']);
     Route::delete('detail-keranjang/{id}', [DetailKeranjangController::class, 'destroy']);
     Route::post('detail-keranjang/destroy-all', [DetailKeranjangController::class, 'destroyAll']);
+
+    // POIN
+    Route::get('poinPembeli', [PembeliController::class, 'getPoinPembeli']);
+    Route::post('getTotalHarga', [DetailKeranjangController::class, 'getTotalHarga']);
+
 });
 
 Route::group(['middleware' => ['auth:sanctum', 'penitip']], function () {
