@@ -165,7 +165,7 @@ class PenitipanController
             ], 200);
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(['message' => 'Gagal: ' . $e->getMessage()], 500);
+            return response()->json(['message' => 'Gagals: ' . $e->getMessage()], 500);
         }
     }
 
