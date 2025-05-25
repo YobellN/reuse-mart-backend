@@ -8,7 +8,7 @@ class FotoProduk extends Model
 {
     protected $table = 'foto_produk';
     protected $primaryKey = 'id_foto_produk';
-
+    public $timestamps = false;
     protected $fillable = [
         'id_produk',
         'path_foto',

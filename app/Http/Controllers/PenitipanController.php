@@ -11,6 +11,7 @@ use App\Models\DetailPenitipan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Omaressaouaf\LaravelIdGenerator\IdGenerator;
 
 class PenitipanController
@@ -18,8 +19,9 @@ class PenitipanController
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request) {
-        $penitipan = Penitipan::with('penitip.user', 'qc.user', 'hunter.user','detailPenitipan.produk.fotoProduk',  'detailPenitipan.produk.kategori')->get();
+    public function index(Request $request)
+    {
+        $penitipan = Penitipan::with('penitip.user', 'qc.user', 'hunter.user', 'detailPenitipan.produk.fotoProduk',  'detailPenitipan.produk.kategori')->get();
 
         return response()->json([
             'message' => 'Data Penitipan',
@@ -40,9 +42,10 @@ class PenitipanController
      */
     public function store(Request $request)
     {
+
         DB::beginTransaction();
 
-        try{
+        try {
             $request->validate([
                 //bagian penitipan
                 'id_penitip' => 'required|exists:penitip,id_penitip',
@@ -60,7 +63,7 @@ class PenitipanController
                 'produk.*.foto_produk' => 'required|array|min:2|max:10',
                 'produk.*.foto_produk.*.path_foto' => 'required|file|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
 
-            ],[
+            ], [
                 'id_penitip.required' => 'Penitip tidak boleh kosong',
                 'id_penitip.exists' => 'Penitip tidak ditemukan',
                 'id_qc.required' => 'QC tidak boleh kosong',
@@ -75,7 +78,7 @@ class PenitipanController
                 'produk.*.id_kategori.required' => 'Kategori produk tidak boleh kosong',
                 'produk.*.id_kategori.exists' => 'Kategori produk tidak ditemukan',
                 'produk.*.harga_produk.required' => 'Harga produk tidak boleh kosong',
-                'produk.*.harga_produk.numeric' => 'Harga produk harus berupa angka',    
+                'produk.*.harga_produk.numeric' => 'Harga produk harus berupa angka',
                 'produk.*.waktu_garansi.date' => 'Waktu garansi harus berupa tanggal',
                 'produk.*.foto_produk.required' => 'Foto produk tidak boleh kosong',
                 'produk.*.foto_produk.min' => 'Minimal 2 foto produk',
@@ -106,9 +109,11 @@ class PenitipanController
 
             //bagian insert data produknya
             $status_hunting = $penitipan->id_hunter ? 1 : 0;
-            foreach($request->produk as $item){
+
+            foreach ($request->produk as $item) {
+
                 $id_produk = IdGenerator::generate(Produk::class, 'id_produk', 4, 'K');
-                
+
                 $produk = Produk::create([
                     'id_produk' => $id_produk,
                     'nama_produk' => $item['nama_produk'],
@@ -116,9 +121,7 @@ class PenitipanController
                     'id_kategori' => $item['id_kategori'],
                     'harga_produk' => $item['harga_produk'],
                     'status_ketersediaan' => 1,
-                    'waktu_garansi' => $item['waktu_garansi'] 
-                                    ? Carbon::parse($item['waktu_garansi']) 
-                                    : null,
+                    'waktu_garansi' => $item['waktu_garansi'] ?? null,
                     'status_produk_hunting' => $status_hunting,
                 ]);
 
@@ -129,7 +132,7 @@ class PenitipanController
                 ]);
 
                 //bagian insert foto
-                foreach($item['foto_produk'] as $i =>$foto){
+                foreach ($item['foto_produk'] as $i => $foto) {
 
                     $file = $foto['path_foto'];
 
@@ -141,8 +144,7 @@ class PenitipanController
                         ], 422);
                     }
 
-                    $file = $foto->file('path_foto');
-                    $file_name = $id_produk . '_' . ($i+1) . '.' . $file->getClientOriginalExtension();
+                    $file_name = $id_produk . '_' . ($i + 1) . '.' . $file->getClientOriginalExtension();
                     $path = $file->storeAs('foto_produk', $file_name, 'public');
 
                     FotoProduk::create(
@@ -151,7 +153,7 @@ class PenitipanController
                             'path_foto' => str_replace('foto_produk/', '', $path),
                             'thumbnail' => $i === 0 ? 1 : 0,
                         ]
-                        );
+                    );
                 }
             }
 
@@ -161,9 +163,7 @@ class PenitipanController
                 'message' => 'Penitipan berhasil ditambahkan',
                 'data' => $penitipan
             ], 200);
-           
-
-        }catch(\Exception $e){
+        } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['message' => 'Gagal: ' . $e->getMessage()], 500);
         }
@@ -174,20 +174,20 @@ class PenitipanController
      */
     public function show(string $id)
     {
-         $penitipan = Penitipan::with('penitip.user', 'qc.user', 'hunter.user', 'detailPenitipan.produk.kategori')->find($id);
-    
-        if(!$penitipan) {
+        $penitipan = Penitipan::with('penitip.user', 'qc.user', 'hunter.user', 'detailPenitipan.produk.kategori')->find($id);
+
+        if (!$penitipan) {
             return response()->json([
                 'message' => 'Penitipan tidak ditemukan',
                 'errors'  => ['id' => 'Penitipan tidak ditemukan'],
             ], 404);
         }
-    
+
         return response()->json([
             'message' => 'Data Penitipan',
             'data' => $penitipan
         ], 200);
-        }
+    }
 
     /**
      * Show the form for editing the specified resource.
@@ -258,13 +258,13 @@ class PenitipanController
     {
         $pegawai = Pegawai::with('user', 'jabatan')->where('id_jabatan', 3)->get();
 
-        if(!$pegawai) {
+        if (!$pegawai) {
             return response()->json([
                 'message' => 'Pegawai tidak ditemukan',
                 'errors'  => ['id' => 'Pegawai tidak ditemukan'],
             ], 404);
         }
-        
+
         return response()->json([
             'message' => 'Data Pegawai',
             'data' => $pegawai
@@ -275,7 +275,7 @@ class PenitipanController
     {
         $pegawai = Pegawai::with('user', 'jabatan')->where('id_jabatan', 1)->get();
 
-        if(!$pegawai) {
+        if (!$pegawai) {
             return response()->json([
                 'message' => 'Pegawai tidak ditemukan',
                 'errors'  => ['id' => 'Pegawai tidak ditemukan'],
