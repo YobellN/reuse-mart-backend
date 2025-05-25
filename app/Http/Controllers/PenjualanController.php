@@ -45,13 +45,28 @@ class PenjualanController
             ]);
         } else if ($user->role === 'Gudang') {
             $metode_pengiriman = $request->query('metode_pengiriman');
+
             $penjualan = Penjualan::with([
                 'pembeli.user',
                 'detail.produk.kategori',
                 'detail.produk.fotoProduk',
                 'pengiriman.alamat',
                 'pembayaran',
-            ])->when($status_penjualan, fn($q) => $q->where('status_penjualan', $status_penjualan))->when($metode_pengiriman, fn($q) => $q->where('metode_pengiriman', $metode_pengiriman))->orderBy('tanggal_penjualan', 'desc')->get();
+            ])
+                ->when($metode_pengiriman, function ($query) use ($metode_pengiriman) {
+                    return $query->where('metode_pengiriman', $metode_pengiriman);
+                })
+                ->whereHas('pembayaran', function ($query) {
+                    $query->where('status_pembayaran', 'Lunas');
+                })
+                ->when($status_penjualan, function ($query) use ($status_penjualan) {
+                    return $status_penjualan === 'Selesai'
+                        ? $query->whereIn('status_penjualan', ['Selesai', 'Dikirim', 'Hangus', 'Menunggu Pengambilan'])
+                        : $query->where('status_penjualan', $status_penjualan);
+                })
+                ->orderBy('tanggal_penjualan', 'desc')
+                ->get();
+
 
             if ($penjualan->isEmpty()) {
                 return response()->json([
