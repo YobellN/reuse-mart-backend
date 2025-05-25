@@ -86,6 +86,16 @@ Route::group(['middleware' => ['auth:sanctum', 'gudang']], function () {
     Route::patch('gudang/penjadwalan-pengiriman/{id}', [PengirimanController::class, 'update']);
     Route::get('gudang/get-all-kurir', [PegawaiController::class, 'getAllKurir']);
     Route::get('gudang/get-pengiriman/{id}', [PengirimanController::class, 'show']);
+    Route::get('penitipan/all', [PenitipanController::class, 'index']);
+    Route::get('penitipan/detail/{id}', [PenitipanController::class, 'show']);
+
+    //untuk input form penitipan baru
+    Route::get('gudang/get-pegawai-qc', [PenitipanController::class, 'getPegawaiQC']);
+    Route::get('gudang/get-pegawai-hunter', [PenitipanController::class, 'getPegawaiHunter']);
+    Route::get('penitip', [PenitipController::class, 'index']);
+
+    //transaksi penitipan di gudang
+    Route::post('gudang/new-penitipan', [PenitipanController::class, 'store']);
 });
 
 
