@@ -51,7 +51,7 @@ class PenitipanController
                 'id_penitip' => 'required|exists:penitip,id_penitip',
                 'id_qc' => 'required|exists:pegawai,id_pegawai',
                 'id_hunter' => 'nullable|exists:pegawai,id_pegawai',
-                'tanggal_penitipan' => 'required|date',
+              
                 //bagian array produk
                 'produk' => 'required|array|min:1',
                 'produk.*.nama_produk' => 'required|string|min:3',
@@ -69,8 +69,7 @@ class PenitipanController
                 'id_qc.required' => 'QC tidak boleh kosong',
                 'id_qc.exists' => 'QC tidak ditemukan',
                 'id_hunter.exists' => 'Hunter tidak ditemukan',
-                'tanggal_penitipan.required' => 'Tanggal penitipan tidak boleh kosong',
-                'tanggal_penitipan.date' => 'Tanggal penitipan harus berupa tanggal',
+               
                 'produk.required' => 'Produk tidak boleh kosong',
                 'produk.min' => 'Minimal 1 produk',
                 'produk.*.nama_produk.required' => 'Nama produk tidak boleh kosong',
@@ -90,11 +89,20 @@ class PenitipanController
 
             //bagian insert data penitipan saja
 
-            $carbonDate = Carbon::parse($request->tanggal_penitipan);
-            $prefix = $carbonDate->format('y.m') . '.';
-            $id_penitipan = IdGenerator::generate(Penitipan::class, 'id_penitipan', 4, $prefix);
+            $tanggalSekarang = Carbon::now();
+            $lastId = Penitipan::orderBy('id_penitipan', 'desc')->value('id_penitipan');
 
-            $tenggat_penitipan = $carbonDate->copy()->addDays(30);
+            $nextNumber = $lastId
+                ? ((int) substr($lastId, -4)) + 1
+                : 1;
+
+            $prefix = now()->format('y.m') . '.';
+
+            $id_penitipan = $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+            // $prefix = $tanggalSekarang->format('y.m') . '.';
+            // $id_penitipan = IdGenerator::generate(Penitipan::class, 'id_penitipan', 4, $prefix);
+           
+            $tenggat_penitipan = $tanggalSekarang->copy()->addDays(30);
             $tenggat_pengambilan = $tenggat_penitipan->copy()->addDays(7);
 
             $penitipan =  Penitipan::create([
@@ -102,7 +110,7 @@ class PenitipanController
                 'id_penitip' => $request->id_penitip,
                 'id_qc' => $request->id_qc,
                 'id_hunter' => $request->id_hunter,
-                'tanggal_penitipan' => $carbonDate->format('Y-m-d H:i:s'),
+                'tanggal_penitipan' => $tanggalSekarang->format('Y-m-d H:i:s'),
                 'tenggat_penitipan' => $tenggat_penitipan,
                 'tenggat_pengambilan' => $tenggat_pengambilan,
             ]);
@@ -119,7 +127,7 @@ class PenitipanController
                     'nama_produk' => $item['nama_produk'],
                     'deskripsi_produk' => $item['deskripsi_produk'],
                     'id_kategori' => $item['id_kategori'],
-                    'harga_produk' => $item['harga_produk'],
+                    'harga_produk' => (float) $item['harga_produk'],
                     'status_ketersediaan' => 1,
                     'waktu_garansi' => $item['waktu_garansi'] ?? null,
                     'status_produk_hunting' => $status_hunting,
