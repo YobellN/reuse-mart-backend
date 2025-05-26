@@ -22,6 +22,8 @@ use App\Http\Controllers\DetailKeranjangController;
 use App\Http\Controllers\PengirimanController;
 use App\Models\Pengiriman;
 use App\Http\Controllers\PembeliController;
+use App\Http\Controllers\PembayaranController;
+use App\Http\Controllers\DetailPenjualanController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -79,6 +81,10 @@ Route::group(['middleware' => ['auth:sanctum', 'cs']], function () {
 
     Route::get('diskusi/', [DiskusiController::class, 'index']);
     Route::delete('diskusi/{id}', [DiskusiController::class, 'destroy']);
+    
+    // VERIFIKASI PEMBAYARAN
+    Route::post('konfirmasiPembayaran/{id_penjualan}', [PembayaranController::class, 'konfirmasiPembayaran']);
+    Route::post('tolakPembayaran/{id_penjualan}', [PembayaranController::class, 'tolakPembayaran']);
 });
 
 Route::group(['middleware' => ['auth:sanctum', 'gudang']], function () {
@@ -120,6 +126,15 @@ Route::group(['middleware' => ['auth:sanctum', 'pembeli']], function () {
     // POIN
     Route::get('poinPembeli', [PembeliController::class, 'getPoinPembeli']);
     Route::post('getTotalHarga', [DetailKeranjangController::class, 'getTotalHarga']);
+
+    // PEMBAYARAN
+    Route::post('pembayaran', [PembayaranController::class, 'store']);
+
+    // TAGIHAN
+    Route::get('tagihan/{id}', [PenjualanController::class, 'getTagihanPembayaran']);
+
+    // DETAIL PENJUALAN
+    Route::resource('detail-penjualan', DetailPenjualanController::class);
 
 });
 
