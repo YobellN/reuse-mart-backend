@@ -3,6 +3,8 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use App\Models\DetailPenjualan;
+use App\Models\Produk;
 
 class BatalkanPenjualanExpired extends Command
 {
@@ -33,8 +35,16 @@ class BatalkanPenjualanExpired extends Command
             ->get();
 
         foreach ($penjualans as $penjualan) {
-            $penjualan->status_penjualan = 'Batal';
+            $penjualan->status_penjualan = 'Hangus';
             $penjualan->save();
+
+            // membalikkan stok produk
+            $detail_penjualan = DetailPenjualan::where('id_penjualan', $penjualan->id_penjualan)->get();
+            foreach ($detail_penjualan as $detail) {
+                $produk = Produk::find($detail->id_produk);
+                $produk->status_ketersediaan = 1;
+                $produk->save();
+            }
 
             // Hapus pengiriman jika ada
             if ($penjualan->pengiriman) {

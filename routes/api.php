@@ -85,6 +85,8 @@ Route::group(['middleware' => ['auth:sanctum', 'cs']], function () {
     // VERIFIKASI PEMBAYARAN
     Route::post('konfirmasiPembayaran/{id_penjualan}', [PembayaranController::class, 'konfirmasiPembayaran']);
     Route::post('tolakPembayaran/{id_penjualan}', [PembayaranController::class, 'tolakPembayaran']);
+    Route::get('getPembayaranPending', [PembayaranController::class, 'getPembayaranPending']);
+    Route::get('getPembayaranBukanPending', [PembayaranController::class, 'getPembayaranBukanPending']);
 });
 
 Route::group(['middleware' => ['auth:sanctum', 'gudang']], function () {

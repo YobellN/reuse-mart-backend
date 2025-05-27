@@ -10,6 +10,7 @@ use App\Models\DetailPenjualan;
 use App\Models\Penjualan;
 use App\Models\Produk;
 use App\Models\Pembeli;
+
 class PembayaranController
 {
     /**
@@ -153,7 +154,7 @@ class PembayaranController
     }
 
     // ini bagian si CS konfirmasi pembayaran
-    public function konfirmasiPembayaran(string $id_penjualan ,Request $request)
+    public function konfirmasiPembayaran(string $id_penjualan, Request $request)
     {
         // Mengecek user yang sedang login
         $user = $request->user();
@@ -183,9 +184,9 @@ class PembayaranController
         $pembayaran->status_pembayaran = 'Lunas';
         $pembayaran->save();
 
-        // membuat status_penjualan di tabel penjualan menjadi Diproses
+        // membuat status_penjualan di tabel penjualan menjadi Disiapkan
         $penjualan = Penjualan::find($id_penjualan);
-        $penjualan->status_penjualan = 'Diproses';
+        $penjualan->status_penjualan = 'Disiapkan';
         $penjualan->save();
 
         // membuat setiap produk yang ada di detail penjualan menjadi status_penjualannya terjual
@@ -207,7 +208,7 @@ class PembayaranController
     }
 
     // kebalikannya, menolak pembayaran, statusnya jadi Ditolak
-    public function tolakPembayaran(string $id_penjualan ,Request $request)
+    public function tolakPembayaran(string $id_penjualan, Request $request)
     {
         // Mengecek user yang sedang login
         $user = $request->user();
@@ -238,8 +239,13 @@ class PembayaranController
         $pembayaran->save();
 
         // tambahan logika, kalau ditolak, maka akan mengembalikan poin user serta membuat stok produk jadi 1 lagi
-        // ambil poin yang mau dikembalikan dari penjualan.
+        
+        // membuat status_penjualan di tabel penjualan menjadi Batal
         $penjualan = Penjualan::find($id_penjualan);
+        $penjualan->status_penjualan = 'Batal';
+        $penjualan->save();
+
+        // ambil poin yang mau dikembalikan dari penjualan.
         $poin = $penjualan->poin_potongan - $penjualan->poin_perolehan;
         $pembeli = Pembeli::find($penjualan->id_pembeli);
         $pembeli->poin += $poin;
@@ -255,14 +261,35 @@ class PembayaranController
 
         // Jika ada pengiriman, maka batalkan
         if ($penjualan->pengiriman) {
-            $penjualan->pengiriman->status_pengiriman = 'Batal';
-            $penjualan->pengiriman->save();
+            $penjualan->pengiriman->delete();
         }
 
         // end
         return response()->json([
             'status' => 'success',
             'message' => 'Pembayaran berhasil ditolak',
+            'data' => $pembayaran
+        ], 200);
+    }
+
+    // Mengambil semua pembayaran yang statusnya masih pending (untuk CS konfirmasi pembayaran)
+    public function getPembayaranPending()
+    {
+        $pembayaran = Pembayaran::with('penjualan')->where('status_pembayaran', 'Pending')->get();
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Data pembayaran',
+            'data' => $pembayaran
+        ], 200);
+    }
+
+    // kebalikannya, yg bukan pending
+    public function getPembayaranBukanPending()
+    {
+        $pembayaran = Pembayaran::with('penjualan')->where('status_pembayaran', '!=', 'Pending')->get();
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Data pembayaran',
             'data' => $pembayaran
         ], 200);
     }
