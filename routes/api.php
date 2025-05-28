@@ -30,6 +30,7 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/loginMobile', [AuthController::class, 'loginMobile']);
 
 Route::post('/updateAllPassword', [AuthController::class, 'updateAllPassword']);
 

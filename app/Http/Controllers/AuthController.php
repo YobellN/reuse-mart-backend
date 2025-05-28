@@ -200,4 +200,52 @@ class AuthController
             ],
         ], 201);
     }
+
+    public function loginMobile(Request $request)
+    {
+
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|exists:user',
+            'password' => 'required'
+        ], [
+            'email.required' => 'Email tidak boleh kosong',
+            'email.email' => 'Email tidak valid',
+            'email.exists' => 'Email tidak terdaftar',
+            'password.required' => 'Password tidak boleh kosong'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => "validasi gagal",
+                'errors' => $validator->errors()
+            ], 422, ['Content-Type' => 'application/json']);
+        }
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!Hash::check($request->password, $user->password)) {
+            return response()->json([
+                'message' => 'validasi gagal',
+                'errors' => 'password salah'
+            ], 422);
+        }
+
+        // tambahan khusus mobile, mengecek user hanya antara Pembeli, Penitip, Kurir, Hunter
+        if ($user->role != 'Pembeli' && $user->role != 'Penitip' && $user->role != 'Kurir' && $user->role != 'Hunter') {
+            return response()->json([
+                'message' => 'validasi gagal',
+                'errors' => 'Role tidak sesuai'
+            ], 422);
+        }
+
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return response()->json([
+            'message' => 'Berhasil login',
+            'data' => [
+                'user' => $user,
+                'access_token' => $token
+            ],
+        ], 200);
+    }
 }
