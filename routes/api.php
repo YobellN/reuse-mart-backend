@@ -70,6 +70,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/getUser', [AuthController::class, 'getUser']);
     Route::post('diskusi/', [DiskusiController::class, 'store']);
     Route::post('/notif', [NotifController::class, 'notifyUser']);
+    Route::post('/updateFCMToken', [AuthController::class, 'updateFCMToken']);
 });
 
 Route::group(['middleware' => ['auth:sanctum', 'cs']], function () {
