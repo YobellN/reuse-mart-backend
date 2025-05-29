@@ -10,6 +10,7 @@ use App\Models\DetailPenjualan;
 use App\Models\Penjualan;
 use App\Models\Produk;
 use App\Models\Pembeli;
+use App\Services\FcmChannel;
 
 class PembayaranController
 {
@@ -192,13 +193,28 @@ class PembayaranController
         // membuat setiap produk yang ada di detail penjualan menjadi status_penjualannya terjual
         $detailPenjualan = DetailPenjualan::where('id_penjualan', $id_penjualan)->get();
         foreach ($detailPenjualan as $detail) {
-            $produk = Produk::find($detail->id_produk);
+            $produk = Produk::with([
+                'detailPenitipan.penitipan.penitip'
+            ])->find($detail->id_produk);
+
             $produk->status_akhir_produk = 'Terjual';
             $produk->save();
+
+            // sekalian kasih notif
+            $id_user_penitip = $produk->detailPenitipan
+                ->penitipan
+                ->penitip
+                ->id_user;
+
+            FcmChannel::sendToUser(
+                $id_user_penitip,
+                "Produk Terjual 🎉",
+                "Selamat! Produk '{$produk->nama_produk}' kamu berhasil terjual."
+            );
         }
 
         // FOR YOBEL : KAU TAMBAH LAH DISINI KOMISI, BISA LANGSUNG ATAU KAU JADIIN FUNGSI LALU PANGGIL CONTROLLER
-
+        
         // end
         return response()->json([
             'status' => 'success',
@@ -239,7 +255,7 @@ class PembayaranController
         $pembayaran->save();
 
         // tambahan logika, kalau ditolak, maka akan mengembalikan poin user serta membuat stok produk jadi 1 lagi
-        
+
         // membuat status_penjualan di tabel penjualan menjadi Batal
         $penjualan = Penjualan::find($id_penjualan);
         $penjualan->status_penjualan = 'Batal';
