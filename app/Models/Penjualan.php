@@ -78,7 +78,7 @@ class Penjualan extends Model
         return $this->hasOne(Pembayaran::class, 'id_penjualan', 'id_penjualan');
     }
 
-    public function detail() 
+    public function detail()
     {
         return $this->hasMany(DetailPenjualan::class, 'id_penjualan', 'id_penjualan');
     }

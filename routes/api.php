@@ -22,12 +22,15 @@ use App\Http\Controllers\DetailKeranjangController;
 use App\Http\Controllers\PengirimanController;
 use App\Models\Pengiriman;
 use App\Http\Controllers\PembeliController;
+use App\Http\Controllers\PembayaranController;
+use App\Http\Controllers\DetailPenjualanController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/loginMobile', [AuthController::class, 'loginMobile']);
 
 Route::post('/updateAllPassword', [AuthController::class, 'updateAllPassword']);
 
@@ -67,6 +70,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/getUser', [AuthController::class, 'getUser']);
     Route::post('diskusi/', [DiskusiController::class, 'store']);
     Route::post('/notif', [NotifController::class, 'notifyUser']);
+    Route::post('/updateFCMToken', [AuthController::class, 'updateFCMToken']);
 });
 
 Route::group(['middleware' => ['auth:sanctum', 'cs']], function () {
@@ -79,6 +83,12 @@ Route::group(['middleware' => ['auth:sanctum', 'cs']], function () {
 
     Route::get('diskusi/', [DiskusiController::class, 'index']);
     Route::delete('diskusi/{id}', [DiskusiController::class, 'destroy']);
+    
+    // VERIFIKASI PEMBAYARAN
+    Route::post('konfirmasiPembayaran/{id_penjualan}', [PembayaranController::class, 'konfirmasiPembayaran']);
+    Route::post('tolakPembayaran/{id_penjualan}', [PembayaranController::class, 'tolakPembayaran']);
+    Route::get('getPembayaranPending', [PembayaranController::class, 'getPembayaranPending']);
+    Route::get('getPembayaranBukanPending', [PembayaranController::class, 'getPembayaranBukanPending']);
 });
 
 Route::group(['middleware' => ['auth:sanctum', 'gudang']], function () {
@@ -102,6 +112,10 @@ Route::group(['middleware' => ['auth:sanctum', 'gudang']], function () {
     Route::post('gudang/new-penitipan', [PenitipanController::class, 'store']);
 });
 
+// untuk kurir
+Route::group(['middleware' => ['auth:sanctum', 'kurir']], function () {
+    Route::patch('kurir/konfirmasi-mengirim-kurir/{id}', [PengirimanController::class, 'dikirimKurir']);
+});
 
 Route::group(['middleware' => ['auth:sanctum', 'pembeli']], function () {
     Route::resource('penjualan', PenjualanController::class);
@@ -120,6 +134,15 @@ Route::group(['middleware' => ['auth:sanctum', 'pembeli']], function () {
     // POIN
     Route::get('poinPembeli', [PembeliController::class, 'getPoinPembeli']);
     Route::post('getTotalHarga', [DetailKeranjangController::class, 'getTotalHarga']);
+
+    // PEMBAYARAN
+    Route::post('pembayaran', [PembayaranController::class, 'store']);
+
+    // TAGIHAN
+    Route::get('tagihan/{id}', [PenjualanController::class, 'getTagihanPembayaran']);
+
+    // DETAIL PENJUALAN
+    Route::resource('detail-penjualan', DetailPenjualanController::class);
 
 });
 

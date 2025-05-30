@@ -102,7 +102,6 @@ class PenjualanController
             'metode_pengiriman' => 'required|in:Ambil di gudang,Antar Kurir',
             'poin_potongan' => 'nullable|integer|min:0',
             'id_alamat' => 'nullable|exists:alamat,id_alamat',
-            // 'status_penjualan' => 'required|string|max:20|in:Menunggu Pembayaran,Diproses,Disiapkan,Dikirim,Selesai,Batal,Hangus',
         ]);
 
         // Ambil user login
@@ -154,8 +153,9 @@ class PenjualanController
             'tenggat_pembayaran' => now()->addMinutes(15),
         ]);
 
-        // menyamakan poin pembeli dengan total poin setelah transaksi
-        $pembeli->poin = $penjualan->total_poin;
+        // Mengurangi poin pembeli ketika udah membeli, untuk nambah poin bonus dilakukan ketika sudah konfirmasi pembayaran
+        $pembeli->poin = $pembeli->poin - $harga->poin_dipakai;
+        $pembeli->save();
 
         // membuat pengiriman jika metode pengiriman adalah "Antar Kurir"
         if ($request->metode_pengiriman === 'Antar Kurir') {
@@ -254,6 +254,44 @@ class PenjualanController
             'message' => 'Data detail penjualan berdasarkan user',
             'data' => $details
         ], 200);
+    }
+
+    // mengambil total harga memakai id penjualan (25.05.0005 misalnya)
+    public function getTagihanPembayaran(string $id, Request $request)
+    {
+        // Mengecek user yang sedang login
+        $user = $request->user();
+        if ($user->role !== 'Pembeli') {
+            return response()->json([
+                'errors' => 'Anda tidak memiliki izin untuk melihat tagihan pembayaran',
+                'message' => 'Anda tidak memiliki izin untuk melihat tagihan pembayaran'
+            ], 403);
+        }
+
+        $pembeli = $user->pembeli;
+        if (!$pembeli) {
+            return response()->json([
+                'errors' => 'pembeli tidak ditemukan',
+                'message' => 'Pembeli tidak ditemukan'
+            ], 404);
+        }
+
+        // mengambil penjualan yang id nya sesuai request
+        $penjualan = Penjualan::where('id_penjualan', $id)->first();
+        if (!$penjualan) {
+            return response()->json([
+                'errors' => 'Penjualan tidak ditemukan',
+                'message' => 'Penjualan tidak ditemukan'
+            ], 404);
+        }
+
+        // mereturn total_harga dari penjualan tersebut
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Tagihan pembayaran',
+            'data' => $penjualan->total_harga
+        ], 200);
+
     }
 
     // buat tes saja

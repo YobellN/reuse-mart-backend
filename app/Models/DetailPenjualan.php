@@ -10,6 +10,7 @@ class DetailPenjualan extends Model
     
     protected $primaryKey = 'id_detail_penjualan';
     public $incrementing = true;
+    public $timestamps = false;
 
     protected $fillable = [
         'id_penjualan',
