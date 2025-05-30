@@ -103,7 +103,6 @@ class PenjualanController
             'metode_pengiriman' => 'required|in:Ambil di gudang,Antar Kurir',
             'poin_potongan' => 'nullable|integer|min:0',
             'id_alamat' => 'nullable|exists:alamat,id_alamat',
-            // 'status_penjualan' => 'required|string|max:20|in:Menunggu Pembayaran,Diproses,Disiapkan,Dikirim,Selesai,Batal,Hangus',
         ]);
 
         // Ambil user login
@@ -155,8 +154,8 @@ class PenjualanController
             'tenggat_pembayaran' => now()->addMinutes(15),
         ]);
 
-        // menyamakan poin pembeli dengan total poin setelah transaksi
-        $pembeli->poin = $pembeli->poin - $harga->poin_dipakai + $harga->poin;
+        // Mengurangi poin pembeli ketika udah membeli, untuk nambah poin bonus dilakukan ketika sudah konfirmasi pembayaran
+        $pembeli->poin = $pembeli->poin - $harga->poin_dipakai;
         $pembeli->save();
 
         // membuat pengiriman jika metode pengiriman adalah "Antar Kurir"

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use GuzzleHttp\Client;
 use Google_Client;
+use App\Models\User;
 
 class FcmChannel
 {
@@ -41,6 +42,25 @@ class FcmChannel
             ],
             'fcm_response' => $result
         ];
+    }
+
+    public static function sendToUser(int $id_user, string $title, string $body)
+    {
+        $user = User::find($id_user);
+
+        if (!$user || !$user->fcm_token) {
+            return [
+                'success' => false,
+                'message' => 'FCM token tidak tersedia.',
+                'id_user' => $id_user,
+            ];
+        }
+
+        return FcmChannel::send(
+            $user->fcm_token,
+            $title,
+            $body
+        );
     }
 
     private static function getAccessToken()

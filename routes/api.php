@@ -70,6 +70,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/getUser', [AuthController::class, 'getUser']);
     Route::post('diskusi/', [DiskusiController::class, 'store']);
     Route::post('/notif', [NotifController::class, 'notifyUser']);
+    Route::post('/updateFCMToken', [AuthController::class, 'updateFCMToken']);
 });
 
 Route::group(['middleware' => ['auth:sanctum', 'cs']], function () {
@@ -112,6 +113,10 @@ Route::group(['middleware' => ['auth:sanctum', 'gudang']], function () {
     Route::post('gudang/new-penitipan', [PenitipanController::class, 'store']);
 });
 
+// untuk kurir
+Route::group(['middleware' => ['auth:sanctum', 'kurir']], function () {
+    Route::patch('kurir/konfirmasi-mengirim-kurir/{id}', [PengirimanController::class, 'dikirimKurir']);
+});
 
 Route::group(['middleware' => ['auth:sanctum', 'pembeli']], function () {
     Route::resource('penjualan', PenjualanController::class);

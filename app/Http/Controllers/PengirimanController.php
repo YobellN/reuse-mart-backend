@@ -122,6 +122,47 @@ class PengirimanController
             ], 404);
         }
 
+        // disini notif
+
+        $jadwalString = Carbon::parse($validated['jadwal_pengiriman'])->locale('id')->isoFormat('dddd, D MMMM YYYY [pukul] HH:mm');
+
+        // Intinya ngambil semua id penitip, unik. Biar gak ngespam.
+        $penitipUsers = collect($penjualan->detail)
+            ->map(fn($d) => $d->produk->detailPenitipan->first()?->penitipan->penitip->user)
+            ->filter() // hapus null
+            ->unique('id') // hilangkan user duplikat
+            ->values();
+
+        foreach ($penitipUsers as $user) {
+            if ($user->fcm_token) {
+                FcmChannel::send(
+                    $user->fcm_token,
+                    'Barang Titipan Anda Akan Dikirim',
+                    "Produk yang Anda titipkan akan dikirim ke pembeli pada $jadwalString. Terima kasih telah menggunakan ReUse Mart."
+                );
+            }
+        }
+
+        // Notifikasi ke pembeli seperti biasa
+        $fcmPembeli = $penjualan->pembeli->user->fcm_token ?? null;
+        if ($fcmPembeli) {
+            FcmChannel::send(
+                $fcmPembeli,
+                'Pesanan Anda Akan Dikirim',
+                "Barang yang Anda beli akan dikirimkan ke alamat Anda pada $jadwalString. Terima kasih telah berbelanja di ReUse Mart!"
+            );
+        }
+
+        // Notifikasi ke kurir
+        $fcmKurir = $pengiriman->kurir->user->fcm_token ?? null;
+        if ($fcmKurir) {
+            FcmChannel::send(
+                $fcmKurir,
+                'Tugas Pengiriman Baru',
+                "Anda memiliki tugas pengiriman pada $jadwalString. Silakan cek aplikasi ReUse Mart untuk detail pengiriman."
+            );
+        }
+
         return response()->json([
             'message' => 'Pengiriman berhasil dijadwalkan',
             'data' => $penjualan
@@ -161,6 +202,35 @@ class PengirimanController
             'jadwal_pengambilan' => $validated['jadwal_pengambilan'],
             'status_penjualan' => 'Menunggu Pengambilan',
         ]);
+
+        $jadwal = Carbon::parse($validated['jadwal_pengambilan'])->locale('id')->isoFormat('dddd, D MMMM YYYY [pukul] HH:mm');
+
+        // Intinya ngambil semua id penitip, unik. Biar gak ngespam.
+        $penitipUsers = collect($penjualan->detail)
+            ->map(fn($d) => $d->produk->detailPenitipan->first()?->penitipan->penitip->user)
+            ->filter() // hapus null
+            ->unique('id') // hilangkan user duplikat
+            ->values();
+
+        foreach ($penitipUsers as $user) {
+            if ($user->fcm_token) {
+                FcmChannel::send(
+                    $user->fcm_token,
+                    'Barang Titipan Anda Akan Dikirim',
+                    "Produk yang Anda titipkan akan dikirim ke pembeli pada $jadwal. Terima kasih telah menggunakan ReUse Mart."
+                );
+            }
+        }
+
+        // Notifikasi ke pembeli seperti biasa
+        $fcmPembeli = $penjualan->pembeli->user->fcm_token ?? null;
+        if ($fcmPembeli) {
+            FcmChannel::send(
+                $fcmPembeli,
+                'Jadwal Pengambilan Barang',
+                "Barang yang Anda beli bisa diambil pada $jadwal. Terima kasih telah berbelanja di ReUse Mart!"
+            );
+        }
 
         return response()->json([
             'message' => 'Penjualan berhasil dijadwalkan',
@@ -212,6 +282,92 @@ class PengirimanController
             'data' => $penjualan,
             'notifPembeli' => $notifPembeli,
             'notifPenitip' => $notifPenitip,
+        ], 200);
+    }
+
+    // aku gk nampak fungsionalitas untuk nomor 2 yang td, jadinya gk ada yang 'Diambil oleh kurir' untuk pengiriman.
+    // aku bikin di backend sebiji, public function dikirim Kurir(Request $request, string $id), ada di controller pengiriman. 
+    // kalau dipanggil dan masang id_penjualannya, dia ngubah pengiriman jadi diambil kurir. lalu ngasih notif.
+    public function dikirimKurir(Request $request, string $id)
+    {
+        $pengiriman = Pengiriman::with([
+            'kurir',
+            'penjualan'
+        ])->find($id);
+
+        // ngecek apakah sudah ada id kurir
+        if (!$pengiriman->id_kurir) {
+            return response()->json([
+                'message' => 'Kurir belum diisi',
+                'errors' => ['id' => 'Kurir belum diisi'],
+            ]);
+        }
+
+        // ngecek, apakah kurirnya sama
+        $id_kurir = $request->user()->pegawai()->first()->id_pegawai;
+
+        if ($id_kurir != $pengiriman->id_kurir) {
+            return response()->json([
+                'message' => 'Kurir tidak sesuai',
+                'errors' => ['id' => 'Kurir tidak sesuai'],
+            ]);
+        }
+
+
+        $pengiriman->update([
+            'status_pengiriman' => 'Diambil oleh kurir',
+        ]);
+
+        $pengiriman->penjualan()->update([
+            'status_penjualan' => 'Dikirim'
+        ]);
+
+        $penjualan = Penjualan::with([
+            'pembeli.user',
+            'detail.produk.kategori',
+            'detail.produk.fotoProduk',
+            'pengiriman.alamat',
+            'pembayaran',
+        ])->find($pengiriman->id_penjualan);
+
+        if (!$penjualan) {
+            return response()->json([
+                'message' => 'Penjualan tidak ditemukan',
+                'errors' => ['id' => 'Penjualan tidak ditemukan'],
+            ], 404);
+        }
+
+        // disini notif
+        // Intinya ngambil semua id penitip, unik. Biar gak ngespam.
+        $penitipUsers = collect($penjualan->detail)
+            ->map(fn($d) => $d->produk->detailPenitipan->first()?->penitipan->penitip->user)
+            ->filter() // hapus null
+            ->unique('id') // hilangkan user duplikat
+            ->values();
+
+        foreach ($penitipUsers as $user) {
+            if ($user->fcm_token) {
+                FcmChannel::send(
+                    $user->fcm_token,
+                    'Barang Titipan Anda telah diambil oleh kurir',
+                    "Produk yang Anda titipkan sedang dikirim ke pembeli. Terima kasih telah menggunakan ReUse Mart."
+                );
+            }
+        }
+
+        // Notifikasi ke pembeli seperti biasa
+        $fcmPembeli = $penjualan->pembeli->user->fcm_token ?? null;
+        if ($fcmPembeli) {
+            FcmChannel::send(
+                $fcmPembeli,
+                'Pesanan Anda sedang Dikirim',
+                "Barang yang Anda beli sedang dalam perjalanan. Terima kasih telah berbelanja di ReUse Mart!"
+            );
+        }
+
+        return response()->json([
+            'message' => 'Pengiriman berhasil dijadwalkan',
+            'data' => $penjualan
         ], 200);
     }
 }

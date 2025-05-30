@@ -10,7 +10,7 @@ use App\Models\DetailPenjualan;
 use App\Models\Penjualan;
 use App\Models\Produk;
 use App\Models\Pembeli;
-use App\Services\PenjualanService;
+use App\Services\FcmChannel;
 
 class PembayaranController
 {
@@ -190,16 +190,36 @@ class PembayaranController
         $penjualan->status_penjualan = 'Disiapkan';
         $penjualan->save();
 
+        // menambah poin pembeli
+        $pembeli = $penjualan->pembeli;
+        $pembeli->poin += $penjualan->poin_perolehan;
+        $pembeli->save();
+
         // membuat setiap produk yang ada di detail penjualan menjadi status_penjualannya terjual
         $detailPenjualan = DetailPenjualan::where('id_penjualan', $id_penjualan)->get();
         foreach ($detailPenjualan as $detail) {
-            $produk = Produk::find($detail->id_produk);
+            $produk = Produk::with([
+                'detailPenitipan.penitipan.penitip'
+            ])->find($detail->id_produk);
+
             $produk->status_akhir_produk = 'Terjual';
             $produk->save();
+
+            // sekalian kasih notif
+            $id_user_penitip = $produk->detailPenitipan
+                ->penitipan
+                ->penitip
+                ->id_user;
+
+            FcmChannel::sendToUser(
+                $id_user_penitip,
+                "Produk Terjual 🎉",
+                "Selamat! Produk '{$produk->nama_produk}' kamu berhasil terjual."
+            );
         }
 
         // FOR YOBEL : KAU TAMBAH LAH DISINI KOMISI, BISA LANGSUNG ATAU KAU JADIIN FUNGSI LALU PANGGIL CONTROLLER
-
+        
         // end
         return response()->json([
             'status' => 'success',
@@ -247,9 +267,8 @@ class PembayaranController
         $penjualan->save();
 
         // ambil poin yang mau dikembalikan dari penjualan.
-        $poin = $penjualan->poin_potongan - $penjualan->poin_perolehan;
-        $pembeli = Pembeli::find($penjualan->id_pembeli);
-        $pembeli->poin += $poin;
+        $pembeli = $pembayaran->penjualan->pembeli;
+        $pembeli->poin += $penjualan->poin_potongan;
         $pembeli->save();
 
         // ambil semua produk yang batal dari detail penjualan
