@@ -159,4 +159,28 @@ class ProdukController
             'data' => $produk
         ]);
     }
+
+    public function rateProdukPembelian(Request $request, string $id)
+    {
+        $produk = Produk::find($id);
+
+        if (!$produk) {
+            return response()->json([
+                'message' => 'Produk tidak ditemukan',
+            ], 404);
+        };
+
+        $request->validate([
+            'rating' => 'required|numeric|min:1|max:5'
+        ]);
+
+        $produk->rating = $request->rating;
+        $produk->save();
+
+        return response()->json([
+            'status_code' => 200,
+            'message' => 'Rating Produk Berhasil',
+            'data' => $produk
+        ]);
+    }
 }

@@ -144,6 +144,9 @@ Route::group(['middleware' => ['auth:sanctum', 'pembeli']], function () {
     // DETAIL PENJUALAN
     Route::resource('detail-penjualan', DetailPenjualanController::class);
 
+    //RATING PRODUK
+    Route::post('rate-produk-pembelian/{id}', [ProdukController::class, 'rateProdukPembelian']);
+
 });
 
 Route::group(['middleware' => ['auth:sanctum', 'penitip']], function () {
