@@ -10,6 +10,7 @@ use App\Models\DetailPenjualan;
 use App\Models\Penjualan;
 use App\Models\Produk;
 use App\Models\Pembeli;
+use App\Services\PenjualanService;
 
 class PembayaranController
 {
@@ -239,7 +240,7 @@ class PembayaranController
         $pembayaran->save();
 
         // tambahan logika, kalau ditolak, maka akan mengembalikan poin user serta membuat stok produk jadi 1 lagi
-        
+
         // membuat status_penjualan di tabel penjualan menjadi Batal
         $penjualan = Penjualan::find($id_penjualan);
         $penjualan->status_penjualan = 'Batal';
