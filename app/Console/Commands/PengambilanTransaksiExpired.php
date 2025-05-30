@@ -6,6 +6,7 @@ use Exception;
 use Carbon\Carbon;
 use App\Models\Penjualan;
 use Illuminate\Console\Command;
+use App\Services\PenjualanService;
 
 class PengambilanTransaksiExpired extends Command
 {
@@ -40,12 +41,18 @@ class PengambilanTransaksiExpired extends Command
                 $penjualan->update(['status_penjualan' => 'Hangus']);
 
                 foreach ($penjualan->detail as $item) {
-                    $item->produk->update([
+                    $produk = $item->produk;
+
+                    $produk->update([
                         'status_akhir_produk' => 'Produk untuk donasi'
                     ]);
+                    $komisi = PenjualanService::hitungKomisi($produk);
                 }
 
-                $this->info('Penjualan dengan ID ' . $penjualan->id . ' telah dihanguskan.');
+                $poin = PenjualanService::tambahPoin($penjualan);
+
+                $this->info('Penjualan dengan ID ' . $penjualan->id . ' telah dihanguskan. Poin: ' . json_encode($poin) . ', Komisi: ' . json_encode($komisi));
+
             }
 
             $this->info("Berhasil menghanguskan " . $penjualans->count() . " penjualan.");

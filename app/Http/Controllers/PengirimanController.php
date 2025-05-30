@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use Carbon\Carbon;
+use App\Models\Komisi;
 use App\Models\Penjualan;
 use App\Models\Pengiriman;
 use App\Services\FcmChannel;
 use Illuminate\Http\Request;
+use App\Services\PenjualanService;
+use Illuminate\Support\Facades\Log;
 
 class PengirimanController
 {
@@ -278,7 +281,7 @@ class PengirimanController
             'message' => 'Penjualan berhasil dikonfirmasi',
             'data' => $penjualan,
             'notifPembeli' => $notifPembeli,
-            'notifPenitip' => $notifPenitip
+            'notifPenitip' => $notifPenitip,
         ], 200);
     }
 

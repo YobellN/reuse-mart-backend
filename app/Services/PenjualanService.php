@@ -34,7 +34,7 @@ class PenjualanService
         if (!$penitipan) return 'Data penitipan tidak ditemukan';
 
         $penjualan = $detailPenjualan->penjualan()->first();
-        if (!$penjualan || $penjualan->status_penjualan !== 'Selesai' || $penjualan->status_penjualan !== 'Hangus') {
+        if ($penjualan->status_penjualan !== 'Selesai' && $penjualan->status_penjualan !== 'Hangus') {
             return 'Penjualan belum selesai';
         }
 
@@ -76,20 +76,23 @@ class PenjualanService
             'bonus_penitip' => $bonusPenitip
         ]);
 
-        return $komisi;
-        // return [
-        //     'harga_produk' => $hargaJual,
-        //     'id_hunter' => $hunter->id_pegawai ?? null,
-        //     'id_penitip' => $penitipan->id_penitip ?? null,
-        //     'terjual_cepat' => $terjual_cepat,
-        //     'presentase_komisi_perusahaan' => $presentaseKomisiPerusahaan,
-        //     'komisi_penitip' => $komisiPenitip,
-        //     'total_komisi' => $totalKomisi,
-        //     'komisi_perusahaan' => $komisiPerusahaan,
-        //     'bonus_penitip' => $bonusPenitip,
-        //     'komisi_hunter' => $komisiHunter,
-        //     'komisi' => $komisi ?? null
-        // ];
+        if ($komisi) {
+            return self::tambahSaldo($komisi);
+        } else {
+            return [
+                'harga_produk' => $hargaJual,
+                'id_hunter' => $hunter->id_pegawai ?? null,
+                'id_penitip' => $penitipan->id_penitip ?? null,
+                'terjual_cepat' => $terjual_cepat,
+                'presentase_komisi_perusahaan' => $presentaseKomisiPerusahaan,
+                'komisi_penitip' => $komisiPenitip,
+                'total_komisi' => $totalKomisi,
+                'komisi_perusahaan' => $komisiPerusahaan,
+                'bonus_penitip' => $bonusPenitip,
+                'komisi_hunter' => $komisiHunter,
+                'komisi' => $komisi ?? null
+            ];
+        }
     }
 
     public static function tambahSaldo(Komisi $komisi)
@@ -142,14 +145,15 @@ class PenjualanService
         ];
     }
 
-    public static function tambahPoin(Penjualan $penjualan) {
-        if($penjualan->status_penjualan !== 'Selesai' || !$penjualan->status_penjualan !== 'Hangus') {
+    public static function tambahPoin(Penjualan $penjualan)
+    {
+        if ($penjualan->status_penjualan !== 'Selesai' && $penjualan->status_penjualan !== 'Hangus') {
             return ['error' => 'Penjualan belum selesai'];
         }
 
         $pembeli = $penjualan->pembeli()->first();
 
-        if(!$pembeli) {
+        if (!$pembeli) {
             return ['error' => 'Pembeli tidak ditemukan'];
         }
 
@@ -165,5 +169,4 @@ class PenjualanService
             'pembeli' => $pembeli
         ];
     }
-
 }
