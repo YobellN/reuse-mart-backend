@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\DetailKeranjang;
 use App\Models\Keranjang;
-
+use App\Models\Produk;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -57,6 +57,15 @@ class DetailKeranjangController
             $keranjang = Keranjang::where('id_pembeli', $pembeli->id_pembeli)->first();
             $id_keranjang = $keranjang->id_keranjang;
 
+            // ngecek apakah stok produk masih ada
+            $produk = Produk::where('id_produk', $request->id_produk)->first();
+            if ($produk->status_ketersediaan == 0) {
+                return response()->json([
+                    'errors' => 'Stok produk sudah habis',
+                    'message' => 'Stok produk sudah habis'
+                ], 409);
+            }
+
             // Cek apakah produk sudah ada di detail_keranjang
             $exists = DetailKeranjang::where('id_keranjang', $id_keranjang)
                 ->where('id_produk', $request->id_produk)
@@ -64,7 +73,7 @@ class DetailKeranjangController
 
             if ($exists) {
                 return response()->json([
-                    'status' => 'error',
+                    'errors' => 'Produk sudah ada di dalam keranjang',
                     'message' => 'Produk sudah ada di dalam keranjang'
                 ], 409);
             }

@@ -190,6 +190,11 @@ class PembayaranController
         $penjualan->status_penjualan = 'Disiapkan';
         $penjualan->save();
 
+        // menambah poin pembeli
+        $pembeli = $penjualan->pembeli;
+        $pembeli->poin += $penjualan->poin_perolehan;
+        $pembeli->save();
+
         // membuat setiap produk yang ada di detail penjualan menjadi status_penjualannya terjual
         $detailPenjualan = DetailPenjualan::where('id_penjualan', $id_penjualan)->get();
         foreach ($detailPenjualan as $detail) {
@@ -262,9 +267,8 @@ class PembayaranController
         $penjualan->save();
 
         // ambil poin yang mau dikembalikan dari penjualan.
-        $poin = $penjualan->poin_potongan - $penjualan->poin_perolehan;
-        $pembeli = Pembeli::find($penjualan->id_pembeli);
-        $pembeli->poin += $poin;
+        $pembeli = $pembayaran->penjualan->pembeli;
+        $pembeli->poin += $penjualan->poin_potongan;
         $pembeli->save();
 
         // ambil semua produk yang batal dari detail penjualan
