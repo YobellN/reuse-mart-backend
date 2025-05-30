@@ -99,8 +99,6 @@ class PenitipanController
             $prefix = now()->format('y.m') . '.';
 
             $id_penitipan = $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
-            // $prefix = $tanggalSekarang->format('y.m') . '.';
-            // $id_penitipan = IdGenerator::generate(Penitipan::class, 'id_penitipan', 4, $prefix);
            
             $tenggat_penitipan = $tanggalSekarang->copy()->addDays(30);
             $tenggat_pengambilan = $tenggat_penitipan->copy()->addDays(7);
