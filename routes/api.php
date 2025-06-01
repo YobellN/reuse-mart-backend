@@ -111,6 +111,9 @@ Route::group(['middleware' => ['auth:sanctum', 'gudang']], function () {
 
     //transaksi penitipan di gudang
     Route::post('gudang/new-penitipan', [PenitipanController::class, 'store']);
+
+    //edit penitipan
+    Route::post('gudang/edit-penitipan', [PenitipanController::class, 'update']);
 });
 
 // untuk kurir
