@@ -143,6 +143,7 @@ Route::group(['middleware' => ['auth:sanctum', 'pembeli']], function () {
 
     // DETAIL PENJUALAN
     Route::resource('detail-penjualan', DetailPenjualanController::class);
+    Route::get('cekStok', [DetailKeranjangController::class, 'cekStok']);
 
 });
 
