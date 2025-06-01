@@ -30,11 +30,9 @@ class PengambilanTransaksiExpired extends Command
     public function handle()
     {
         try {
-            $expiredDate = Carbon::now()->subDays(2);
-
             $penjualans = Penjualan::with('detail.produk')
                 ->where('status_penjualan', 'Menunggu Pengambilan')
-                ->where('jadwal_pengambilan', '<', $expiredDate)
+                ->whereRaw('DATE_ADD(jadwal_pengambilan, INTERVAL 1 DAY) < NOW()')
                 ->get();
 
             foreach ($penjualans as $penjualan) {

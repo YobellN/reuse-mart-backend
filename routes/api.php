@@ -20,7 +20,6 @@ use App\Http\Controllers\NotifController;
 use App\Http\Controllers\KeranjangController;
 use App\Http\Controllers\DetailKeranjangController;
 use App\Http\Controllers\PengirimanController;
-use App\Models\Pengiriman;
 use App\Http\Controllers\PembeliController;
 use App\Http\Controllers\PembayaranController;
 use App\Http\Controllers\DetailPenjualanController;
@@ -147,6 +146,7 @@ Route::group(['middleware' => ['auth:sanctum', 'pembeli']], function () {
 
     // DETAIL PENJUALAN
     Route::resource('detail-penjualan', DetailPenjualanController::class);
+    Route::get('cekStok', [DetailKeranjangController::class, 'cekStok']);
 
     //RATING PRODUK
     Route::post('rate-produk-pembelian/{id}', [ProdukController::class, 'rateProdukPembelian']);
