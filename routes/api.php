@@ -20,7 +20,6 @@ use App\Http\Controllers\NotifController;
 use App\Http\Controllers\KeranjangController;
 use App\Http\Controllers\DetailKeranjangController;
 use App\Http\Controllers\PengirimanController;
-use App\Models\Pengiriman;
 use App\Http\Controllers\PembeliController;
 use App\Http\Controllers\PembayaranController;
 use App\Http\Controllers\DetailPenjualanController;
@@ -100,6 +99,7 @@ Route::group(['middleware' => ['auth:sanctum', 'gudang']], function () {
     Route::get('gudang/get-pengiriman/{id}', [PengirimanController::class, 'show']);
     Route::patch('gudang/penjadwalan-pengambilan/{id}', [PengirimanController::class, 'jadwalkanPengambilan']);
     Route::patch('gudang/konfirmasi-pengambilan-transaksi/{id}', [PengirimanController::class, 'konfirmasiPengambilanTransaksi']);
+    Route::patch('gudang/tambah-poin-saldo/{id}', [PenjualanController::class, 'tambahPoinSaldo']);
     Route::get('penitipan/all', [PenitipanController::class, 'index']);
     Route::get('penitipan/detail/{id}', [PenitipanController::class, 'show']);
 
@@ -145,6 +145,9 @@ Route::group(['middleware' => ['auth:sanctum', 'pembeli']], function () {
     Route::resource('detail-penjualan', DetailPenjualanController::class);
     Route::get('cekStok', [DetailKeranjangController::class, 'cekStok']);
 
+    //RATING PRODUK
+    Route::post('rate-produk-pembelian/{id}', [ProdukController::class, 'rateProdukPembelian']);
+
 });
 
 Route::group(['middleware' => ['auth:sanctum', 'penitip']], function () {
@@ -161,7 +164,9 @@ Route::group(['middleware' => ['auth:sanctum', 'organisasi']], function () {
 
 Route::resource('/produk', ProdukController::class);
 Route::get('produk/getAllProduk', [ProdukController::class, 'getAllProduk']);
+//JANGAN DI HAPUS ATO DIUBAH
 Route::get('penitip/{id}', [PenitipController::class, 'show']);
+Route::get('informasi-penitip/{id}', [PenitipController::class, 'showNullableRating']);
 Route::get('get-produk-by-penitip/{id}', [ProdukController::class, 'getProdukByPenitip']);
 Route::get('kategori-produk', [KategoriController::class, 'index']);
 

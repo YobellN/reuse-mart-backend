@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use App\Models\DetailPenjualan;
 use App\Services\PenjualanService;
 use App\Http\Controllers\DetailKeranjangController;
+use Illuminate\Support\Facades\Log;
 
 class PenjualanController
 {
@@ -389,4 +390,31 @@ class PenjualanController
             'data' => $hasil
         ], 200);
     }
+
+    public function tambahPoinSaldo($id)
+    {
+        $penjualan = Penjualan::where('id_penjualan', $id)->first();
+
+        if (!$penjualan) {
+            return response()->json([
+                'message' => 'Penjualan tidak ditemukan',
+            ], 404);
+        }
+
+        $poin = PenjualanService::tambahPoin($penjualan);
+        
+        $detail_penjualan = $penjualan->detail()->get();
+
+        foreach ($detail_penjualan as $detail) {
+            $produk = $detail->produk;
+            $komisi = PenjualanService::hitungKomisi($produk);
+        }
+
+        return response()->json([
+            'message' => 'Hasil tambah poin',
+            'poin' => $poin,
+            'komisi' => $komisi
+        ], 200);
+    }
+
 }

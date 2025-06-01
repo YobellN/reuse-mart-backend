@@ -6,7 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Komisi extends Model
 {
+    protected $primaryKey = 'id_detail_penjualan';
     protected $table = 'komisi';
+    public $incrementing = false;
 
     public $timestamps = false;
 
@@ -19,6 +21,7 @@ class Komisi extends Model
         'komisi_penitip',
         'komisi_hunter',
         'bonus_penitip',
+        'ditambahkan',
     ];
 
     protected $casts = [
@@ -26,6 +29,7 @@ class Komisi extends Model
         'komisi_penitip' => 'float',
         'komisi_hunter' => 'float',
         'bonus_penitip' => 'float',
+        'ditambahkan' => 'integer',
     ];
 
     public function detail()
