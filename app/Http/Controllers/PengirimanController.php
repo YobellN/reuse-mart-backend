@@ -3,13 +3,11 @@
 namespace App\Http\Controllers;
 
 use Carbon\Carbon;
-use App\Models\Komisi;
 use App\Models\Penjualan;
 use App\Models\Pengiriman;
-use App\Services\FcmChannel;
 use Illuminate\Http\Request;
-use App\Services\PenjualanService;
-use Illuminate\Support\Facades\Log;
+use App\Services\FcmChannel;
+
 
 class PengirimanController
 {
@@ -265,16 +263,16 @@ class PengirimanController
         if ($fcmPembeli) {
             $notifPembeli = FcmChannel::send(
                 $fcmPembeli,
-                'Transaksi Anda Berhasil!',
-                'Terima kasih telah berbelanja di ReUse Mart. Barang Anda telah berhasil diterima. Sampai jumpa di transaksi berikutnya!'
+                '✅ Transaksi Berhasil!',
+                '🎉 Terima kasih telah berbelanja di ReUse Mart! Barang Anda sudah diterima. Sampai jumpa di transaksi berikutnya 🛍️'
             );
         }
-
+        
         if ($fcmPenitip) {
             $notifPenitip = FcmChannel::send(
                 $fcmPenitip,
-                'Barang Anda Telah Terjual!',
-                'Selamat! Barang titipan Anda telah berhasil terjual melalui ReUse Mart. Terima kasih telah mempercayakan kami.'
+                '📦 Barang Anda Telah Terjual!',
+                '🎊 Selamat! Barang titipan Anda sudah laku di ReUse Mart. Terima kasih telah mempercayakan kami untuk menjualnya 🙌'
             );
         }
         return response()->json([

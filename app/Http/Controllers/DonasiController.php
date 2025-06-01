@@ -86,8 +86,8 @@ class DonasiController
             if ($fcm_token) {
                 $result = FcmChannel::send(
                     $fcm_token,
-                    "Produk Didonasikan!",
-                    "Produk {$produk->nama_produk} telah berhasil didonasikan!",
+                    "🎁 Produk Didonasikan!",
+                    "🎉 Produk *{$produk->nama_produk}* telah berhasil didonasikan ke lembaga sosial! Terima kasih telah berbagi kebaikan 💖",
                 );
             }
 
