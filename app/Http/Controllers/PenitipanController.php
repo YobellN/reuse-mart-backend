@@ -209,7 +209,7 @@ class PenitipanController
      * Update the specified resource in storage.
      */
    public function update(Request $request, $id_penitipan)
-{
+    {
     DB::beginTransaction();
 
     try {
@@ -239,22 +239,20 @@ class PenitipanController
         if ($request->has('produk')) {
             $status_hunting = $penitipan->id_hunter ? 1 : 0;
 
-            $produkLama = $penitipan->produk;
-            foreach ($produkLama as $produk) {
-                foreach ($produk->foto_produk as $foto) {
-                    Storage::disk('public')->delete('foto_produk/' . $foto->path_foto);
-                    $foto->delete();
+            $detailPenitipan = $penitipan->detailPenitipan;
+            
+            
+            if(is_array($request->produk)){
+                foreach ($request->produk as $item) {
+                $produk = Produk::find($item['id_produk']);
+                if (!$produk) {
+                    return response()->json([
+                        'message' => 'Produk tidak ditemukan',
+                        'errors'  => ['id_produk' => 'Produk tidak ditemukan'],
+                    ], 404);
                 }
-                $produk->delete();
-            }
 
-            DetailPenitipan::where('id_penitipan', $id_penitipan)->delete();
-
-            foreach ($request->produk as $item) {
-                $id_produk = IdGenerator::generate(Produk::class, 'id_produk', 4, 'K');
-
-                $produk = Produk::create([
-                    'id_produk' => $id_produk,
+                $produk->update([
                     'nama_produk' => $item['nama_produk'],
                     'deskripsi_produk' => $item['deskripsi_produk'],
                     'id_kategori' => $item['id_kategori'],
@@ -263,24 +261,33 @@ class PenitipanController
                     'waktu_garansi' => $item['waktu_garansi'] ?? null,
                     'status_produk_hunting' => $status_hunting,
                 ]);
+                
+                if(isset($item['foto_produk']) && is_array($item['foto_produk'])) {
+                    foreach ($produk->fotoProduk as $foto) {
+                        Storage::disk('public')->delete('foto_produk/' . $foto->path_foto);
+                        $foto->delete();
+                    }
 
-                DetailPenitipan::create([
-                    'id_penitipan' => $penitipan->id_penitipan,
-                    'id_produk' => $produk->id_produk,
-                ]);
+                    foreach ($item['foto_produk'] as $i => $foto) {
+                        if (!($foto['path_foto'] instanceof \Illuminate\Http\UploadedFile)) {
+                            return response()->json([
+                                'status_code' => 422,
+                                'message' => 'File tidak valid',
+                                'errors' => ['path_foto' => 'File harus berupa gambar yang diupload'],
+                            ], 422);
+                        }
 
-                foreach ($item['foto_produk'] as $i => $foto) {
-                    $file = $foto['path_foto'];
+                        $file_name = $produk->id_produk . '_' . ($i + 1) . '.' . $foto['path_foto']->getClientOriginalExtension();
+                        $path = $foto['path_foto']->storeAs('foto_produk', $file_name, 'public');
 
-                    $file_name = $id_produk . '_' . ($i + 1) . '.' . $file->getClientOriginalExtension();
-                    $path = $file->storeAs('foto_produk', $file_name, 'public');
-
-                    FotoProduk::create([
-                        'id_produk' => $produk->id_produk,
-                        'path_foto' => str_replace('foto_produk/', '', $path),
-                        'thumbnail' => $i === 0 ? 1 : 0,
-                    ]);
+                        FotoProduk::create([
+                            'id_produk' => $produk->id_produk,
+                            'path_foto' => str_replace('foto_produk/', '', $path),
+                            'thumbnail' => $i === 0 ? 1 : 0,
+                        ]);
+                    }
                 }
+            }
             }
         }
 
