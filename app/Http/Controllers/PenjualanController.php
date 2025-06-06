@@ -31,6 +31,7 @@ class PenjualanController
                 'detail.produk.kategori',
                 'detail.produk.fotoProduk',
                 'pengiriman.alamat',
+                'pengiriman.kurir.user',
                 'pembayaran',
             ])->where('id_pembeli', $id_pembeli)->when($status_penjualan, fn($q) => $q->where('status_penjualan', $status_penjualan))->orderBy('tanggal_penjualan', 'desc')->get();
 
@@ -52,6 +53,7 @@ class PenjualanController
                 'detail.produk.kategori',
                 'detail.produk.fotoProduk',
                 'pengiriman.alamat',
+                'pengiriman.kurir.user',
                 'pembayaran',
             ])
                 ->when($metode_pengiriman, function ($query) use ($metode_pengiriman) {
@@ -396,7 +398,7 @@ class PenjualanController
         }
 
         $poin = PenjualanService::tambahPoin($penjualan);
-        
+
         $detail_penjualan = $penjualan->detail()->get();
 
         foreach ($detail_penjualan as $detail) {
@@ -410,5 +412,4 @@ class PenjualanController
             'komisi' => $komisi
         ], 200);
     }
-
 }

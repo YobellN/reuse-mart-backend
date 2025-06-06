@@ -110,6 +110,7 @@ class PengirimanController
             'detail.produk.kategori',
             'detail.produk.fotoProduk',
             'pengiriman.alamat',
+            'pengiriman.kurir.user',
             'pembayaran',
         ])->find($pengiriman->id_penjualan);
 
@@ -186,6 +187,7 @@ class PengirimanController
             'detail.produk.kategori',
             'detail.produk.fotoProduk',
             'pengiriman.alamat',
+            'pengiriman.kurir.user',
             'pembayaran',
         ])->find($id);
 
@@ -243,6 +245,7 @@ class PengirimanController
             'detail.produk.kategori',
             'detail.produk.fotoProduk',
             'pengiriman.alamat',
+            'pengiriman.kurir.user',
             'pembayaran',
         ])->find($id);
 
