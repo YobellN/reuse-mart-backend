@@ -53,7 +53,7 @@ class BatalkanPenjualanExpired extends Command
 
             $pembeli = $penjualan->pembeli;
             if ($pembeli) {
-                $pembeli->poin += $penjualan->poin_potongan - $penjualan->poin_perolehan;
+                $pembeli->poin += $penjualan->poin_potongan;
                 $pembeli->save();
             }
         }

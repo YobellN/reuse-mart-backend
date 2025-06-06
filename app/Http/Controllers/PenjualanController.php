@@ -157,7 +157,7 @@ class PenjualanController
             'poin_perolehan' => $harga->poin,
             'total_poin' => $pembeli->poin - $harga->poin_dipakai + $harga->poin, // Poin saat ini - poin yang dipakai + poin yang didapat
             'status_penjualan' => 'Menunggu Pembayaran',
-            'tenggat_pembayaran' => now()->addMinutes(15),
+            'tenggat_pembayaran' => now()->addMinutes(1), // ubah disini untuk tenggat pembayaran
         ]);
 
         // Mengurangi poin pembeli ketika udah membeli, untuk nambah poin bonus dilakukan ketika sudah konfirmasi pembayaran
