@@ -329,6 +329,63 @@ class DetailKeranjangController
         }
     }
 
-    
-    
+    // Fungsi untuk mengecek apakah dalam keranjang ada barang yang stoknya udah habis (mana tau ke CO duluan)
+    public function cekStok(Request $request)
+    {
+        // Mengecek user yang sedang login
+        $user = $request->user();
+        if ($user->role !== 'Pembeli') {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Anda tidak memiliki izin untuk mengecek stok'
+            ], 403);
+        }
+
+        // mengambil id keranjang dari pembeli
+        $pembeli = $user->pembeli;
+        if ($pembeli) {
+            $keranjang = Keranjang::where('id_pembeli', $pembeli->id_pembeli)->first();
+            if (!$keranjang) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Keranjang tidak ditemukan'
+                ], 404);
+            }
+
+            // Mengambil semua detail keranjang beserta produk
+            $detailKeranjang = DetailKeranjang::with('produk')
+                ->where('id_keranjang', $keranjang->id_keranjang)
+                ->get();
+
+            // Mengecek apakah ada produk yang stoknya udah habis atau tidak tersedia
+            $produkHabis = $detailKeranjang->filter(function ($item) {
+                return $item->produk->status_ketersediaan == 0;
+            });
+
+            if ($produkHabis->isNotEmpty()) {
+                // Menghapus produk yang stoknya habis dari detail keranjang
+                foreach ($produkHabis as $item) {
+                    DetailKeranjang::where('id_keranjang', $item->id_keranjang)
+                        ->where('id_produk', $item->id_produk)
+                        ->delete();
+                }
+
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Stok produk sudah habis',
+                    'data' => $produkHabis
+                ], 400);
+            } else {
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Stok produk masih ada'
+                ], 200);
+            }
+        }else{
+            return response()->json([
+                'status' => 'error',
+                'message' => 'User bukan pembeli'
+            ], 403);
+        }
+    }
 }

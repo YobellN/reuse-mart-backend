@@ -115,7 +115,39 @@ class PenitipController
             ->where('penitipan.id_penitip', $id)
             ->avg('produk.rating'); 
 
-        $avgRating = $avgRating ? round((float)$avgRating, 2) : 5;
+        $avgRating = $avgRating ? round((float)$avgRating, 2) : 5; 
+
+        $total_produk = Produk::join('detail_penitipan', 'produk.id_produk', '=', 'detail_penitipan.id_produk')
+            ->join('penitipan','detail_penitipan.id_penitipan', '=', 'penitipan.id_penitipan')
+            ->where('penitipan.id_penitip', $id)
+            ->count();
+
+        $penitip->rating = $avgRating;
+        $penitip->total_produk = $total_produk;
+        
+        return response()->json([
+            'message' => 'Data Penitip',
+            'data'    => $penitip
+        ]);
+    }
+
+    public function showNullableRating(string $id)
+    {
+        $penitip = Penitip::with('user')->find($id);
+
+        if (! $penitip) {
+            return response()->json([
+                'message' => 'Penitip tidak ditemukan',
+                'errors'  => ['id' => 'Penitip tidak ditemukan'],
+            ], 404);
+        }
+
+        $avgRating = Produk::join('detail_penitipan', 'produk.id_produk', '=', 'detail_penitipan.id_produk')
+            ->join('penitipan','detail_penitipan.id_penitipan', '=', 'penitipan.id_penitipan')
+            ->where('penitipan.id_penitip', $id)
+            ->avg('produk.rating'); 
+
+        $avgRating = $avgRating ? round((float)$avgRating, 2) : null; //ini ku ubah jadi null biar bisa kelihatan kalo emang blum ada rating di user tsb
 
         $total_produk = Produk::join('detail_penitipan', 'produk.id_produk', '=', 'detail_penitipan.id_produk')
             ->join('penitipan','detail_penitipan.id_penitipan', '=', 'penitipan.id_penitipan')

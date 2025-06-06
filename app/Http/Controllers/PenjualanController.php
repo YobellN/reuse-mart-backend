@@ -131,6 +131,12 @@ class PenjualanController
             return $user;
         });
 
+        // Mengecek Apakah semua barang dikeranjang masih ada stok
+        $masihAdaStok = $detailKeranjangController->cekStok($requestData);
+        $masihAdaStokData = $masihAdaStok->getData();
+        if ($masihAdaStokData->status !== 'success') {
+            return response()->json(['message' => 'Maaf! Barang dalam keranjang Anda sudah dibeli.'], 500);
+        }
         // Jalankan fungsi getTotalHarga
         $response = $detailKeranjangController->getTotalHarga($requestData);
         $responseData = $response->getData();

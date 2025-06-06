@@ -113,6 +113,9 @@ Route::group(['middleware' => ['auth:sanctum', 'gudang']], function () {
 
     //transaksi penitipan di gudang
     Route::post('gudang/new-penitipan', [PenitipanController::class, 'store']);
+
+    //edit penitipan
+    Route::post('gudang/edit-penitipan', [PenitipanController::class, 'update']);
 });
 
 // untuk kurir
@@ -146,6 +149,10 @@ Route::group(['middleware' => ['auth:sanctum', 'pembeli']], function () {
 
     // DETAIL PENJUALAN
     Route::resource('detail-penjualan', DetailPenjualanController::class);
+    Route::get('cekStok', [DetailKeranjangController::class, 'cekStok']);
+
+    //RATING PRODUK
+    Route::post('rate-produk-pembelian/{id}', [ProdukController::class, 'rateProdukPembelian']);
 
 });
 
@@ -163,7 +170,9 @@ Route::group(['middleware' => ['auth:sanctum', 'organisasi']], function () {
 
 Route::resource('/produk', ProdukController::class);
 Route::get('produk/getAllProduk', [ProdukController::class, 'getAllProduk']);
+//JANGAN DI HAPUS ATO DIUBAH
 Route::get('penitip/{id}', [PenitipController::class, 'show']);
+Route::get('informasi-penitip/{id}', [PenitipController::class, 'showNullableRating']);
 Route::get('get-produk-by-penitip/{id}', [ProdukController::class, 'getProdukByPenitip']);
 Route::get('kategori-produk', [KategoriController::class, 'index']);
 

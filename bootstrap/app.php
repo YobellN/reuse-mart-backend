@@ -36,6 +36,10 @@ return Application::configure(basePath: dirname(__DIR__))
             ->everyMinute()
             ->withoutOverlapping()
             ->sendOutputTo(storage_path('logs/pengambilan-expired.log'));
+        $schedule->command('app:notif-penitipan')
+            ->everyMinute()
+            ->withoutOverlapping()
+            ->sendOutputTo(storage_path('logs/notif-penitipan.log'));
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
