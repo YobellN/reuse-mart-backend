@@ -3,13 +3,12 @@
 namespace App\Http\Controllers;
 
 use Carbon\Carbon;
-use App\Models\Komisi;
 use App\Models\Penjualan;
 use App\Models\Pengiriman;
 use App\Services\FcmChannel;
 use Illuminate\Http\Request;
-use App\Services\PenjualanService;
-use Illuminate\Support\Facades\Log;
+use App\Models\DetailPenjualan;
+use App\Models\Produk;
 
 class PengirimanController
 {
@@ -112,6 +111,7 @@ class PengirimanController
             'detail.produk.kategori',
             'detail.produk.fotoProduk',
             'pengiriman.alamat',
+            'pengiriman.kurir.user',
             'pembayaran',
         ])->find($pengiriman->id_penjualan);
 
@@ -126,17 +126,20 @@ class PengirimanController
 
         $jadwalString = Carbon::parse($validated['jadwal_pengiriman'])->locale('id')->isoFormat('dddd, D MMMM YYYY [pukul] HH:mm');
 
-        // Intinya ngambil semua id penitip, unik. Biar gak ngespam.
-        $penitipUsers = collect($penjualan->detail)
-            ->map(fn($d) => $d->produk->detailPenitipan->first()?->penitipan->penitip->user)
-            ->filter() // hapus null
-            ->unique('id') // hilangkan user duplikat
-            ->values();
+        $detailPenjualan = DetailPenjualan::where('id_penjualan', $pengiriman->id_penjualan)->get();
 
-        foreach ($penitipUsers as $user) {
-            if ($user->fcm_token) {
-                FcmChannel::send(
-                    $user->fcm_token,
+        foreach ($detailPenjualan as $detail) {
+            $produk = Produk::with([
+                'detailPenitipan.penitipan.penitip'
+            ])->find($detail->id_produk);
+
+            // Pastikan semua relasi tersedia
+            $penitipan = $produk->detailPenitipan->penitipan ?? null;
+            $penitip = $penitipan?->penitip ?? null;
+
+            if ($penitip && $penitip->id_user) {
+                FcmChannel::sendToUser(
+                    $penitip->id_user,
                     'Barang Titipan Anda Akan Dikirim',
                     "Produk yang Anda titipkan akan dikirim ke pembeli pada $jadwalString. Terima kasih telah menggunakan ReUse Mart."
                 );
@@ -144,7 +147,7 @@ class PengirimanController
         }
 
         // Notifikasi ke pembeli seperti biasa
-        $fcmPembeli = $penjualan->pembeli->user->fcm_token ?? null;
+        $fcmPembeli = $penjualan->pembeli->user->fcm_token;
         if ($fcmPembeli) {
             FcmChannel::send(
                 $fcmPembeli,
@@ -154,7 +157,7 @@ class PengirimanController
         }
 
         // Notifikasi ke kurir
-        $fcmKurir = $pengiriman->kurir->user->fcm_token ?? null;
+        $fcmKurir = $pengiriman->kurir->user->fcm_token;
         if ($fcmKurir) {
             FcmChannel::send(
                 $fcmKurir,
@@ -188,6 +191,7 @@ class PengirimanController
             'detail.produk.kategori',
             'detail.produk.fotoProduk',
             'pengiriman.alamat',
+            'pengiriman.kurir.user',
             'pembayaran',
         ])->find($id);
 
@@ -205,25 +209,28 @@ class PengirimanController
 
         $jadwal = Carbon::parse($validated['jadwal_pengambilan'])->locale('id')->isoFormat('dddd, D MMMM YYYY [pukul] HH:mm');
 
-        // Intinya ngambil semua id penitip, unik. Biar gak ngespam.
-        $penitipUsers = collect($penjualan->detail)
-            ->map(fn($d) => $d->produk->detailPenitipan->first()?->penitipan->penitip->user)
-            ->filter() // hapus null
-            ->unique('id') // hilangkan user duplikat
-            ->values();
+        $detailPenjualan = DetailPenjualan::where('id_penjualan', $penjualan->id_penjualan)->get();
 
-        foreach ($penitipUsers as $user) {
-            if ($user->fcm_token) {
-                FcmChannel::send(
-                    $user->fcm_token,
-                    'Barang Titipan Anda Akan Dikirim',
-                    "Produk yang Anda titipkan akan dikirim ke pembeli pada $jadwal. Terima kasih telah menggunakan ReUse Mart."
+        foreach ($detailPenjualan as $detail) {
+            $produk = Produk::with([
+                'detailPenitipan.penitipan.penitip'
+            ])->find($detail->id_produk);
+
+            // Pastikan semua relasi tersedia
+            $penitipan = $produk->detailPenitipan->penitipan ?? null;
+            $penitip = $penitipan?->penitip ?? null;
+
+            if ($penitip && $penitip->id_user) {
+                FcmChannel::sendToUser(
+                    $penitip->id_user,
+                    'Barang Titipan Anda Akan diambil',
+                    "Produk yang Anda titipkan akan diambil pembeli pada $jadwal. Terima kasih telah menggunakan ReUse Mart."
                 );
             }
         }
 
         // Notifikasi ke pembeli seperti biasa
-        $fcmPembeli = $penjualan->pembeli->user->fcm_token ?? null;
+        $fcmPembeli = $penjualan->pembeli->user->fcm_token;
         if ($fcmPembeli) {
             FcmChannel::send(
                 $fcmPembeli,
@@ -245,6 +252,7 @@ class PengirimanController
             'detail.produk.kategori',
             'detail.produk.fotoProduk',
             'pengiriman.alamat',
+            'pengiriman.kurir.user',
             'pembayaran',
         ])->find($id);
 
@@ -260,23 +268,43 @@ class PengirimanController
         ]);
 
         $fcmPembeli = $penjualan->pembeli()->first()->user->fcm_token;
-        $fcmPenitip = $penjualan->detail()->first()->produk->detailPenitipan()->first()->penitipan()->first()->penitip->user->fcm_token;
-
         if ($fcmPembeli) {
             $notifPembeli = FcmChannel::send(
                 $fcmPembeli,
-                'Transaksi Anda Berhasil!',
-                'Terima kasih telah berbelanja di ReUse Mart. Barang Anda telah berhasil diterima. Sampai jumpa di transaksi berikutnya!'
+                '✅ Transaksi Berhasil!',
+                '🎉 Terima kasih telah berbelanja di ReUse Mart! Barang Anda sudah diterima. Sampai jumpa di transaksi berikutnya 🛍️'
             );
         }
 
-        if ($fcmPenitip) {
-            $notifPenitip = FcmChannel::send(
-                $fcmPenitip,
-                'Barang Anda Telah Terjual!',
-                'Selamat! Barang titipan Anda telah berhasil terjual melalui ReUse Mart. Terima kasih telah mempercayakan kami.'
-            );
+        $penitipFcmTokens = [];
+        $notifPenitip = [];
+
+        foreach ($penjualan->detail as $detail) {
+            $produk = $detail->produk;
+            if (!$produk) continue;
+
+            $detailPenitipan = $produk->detailPenitipan()->first();
+            if (!$detailPenitipan) continue;
+
+            $penitipan = $detailPenitipan->penitipan()->first();
+            if (!$penitipan) continue;
+
+            $penitipUser = $penitipan->penitip->user ?? null;
+            if (!$penitipUser) continue;
+
+            $fcmPenitip = $penitipUser->fcm_token;
+
+            if ($fcmPenitip && !in_array($fcmPenitip, $penitipFcmTokens)) {
+                $notifPenitip[] = FcmChannel::send(
+                    $fcmPenitip,
+                    '📦 Barang Anda Telah Terjual!',
+                    '🎊 Selamat! Barang titipan Anda sudah laku di ReUse Mart. Terima kasih telah mempercayakan kami untuk menjualnya 🙌'
+                );
+
+                $penitipFcmTokens[] = $fcmPenitip;
+            }
         }
+
         return response()->json([
             'message' => 'Penjualan berhasil dikonfirmasi',
             'data' => $penjualan,
@@ -338,17 +366,21 @@ class PengirimanController
         }
 
         // disini notif
-        // Intinya ngambil semua id penitip, unik. Biar gak ngespam.
-        $penitipUsers = collect($penjualan->detail)
-            ->map(fn($d) => $d->produk->detailPenitipan->first()?->penitipan->penitip->user)
-            ->filter() // hapus null
-            ->unique('id') // hilangkan user duplikat
-            ->values();
 
-        foreach ($penitipUsers as $user) {
-            if ($user->fcm_token) {
-                FcmChannel::send(
-                    $user->fcm_token,
+        $detailPenjualan = DetailPenjualan::where('id_penjualan', $penjualan->id_penjualan)->get();
+
+        foreach ($detailPenjualan as $detail) {
+            $produk = Produk::with([
+                'detailPenitipan.penitipan.penitip'
+            ])->find($detail->id_produk);
+
+            // Pastikan semua relasi tersedia
+            $penitipan = $produk->detailPenitipan->penitipan ?? null;
+            $penitip = $penitipan?->penitip ?? null;
+
+            if ($penitip && $penitip->id_user) {
+                FcmChannel::sendToUser(
+                    $penitip->id_user,
                     'Barang Titipan Anda telah diambil oleh kurir',
                     "Produk yang Anda titipkan sedang dikirim ke pembeli. Terima kasih telah menggunakan ReUse Mart."
                 );
@@ -356,7 +388,7 @@ class PengirimanController
         }
 
         // Notifikasi ke pembeli seperti biasa
-        $fcmPembeli = $penjualan->pembeli->user->fcm_token ?? null;
+        $fcmPembeli = $penjualan->pembeli->user->fcm_token;
         if ($fcmPembeli) {
             FcmChannel::send(
                 $fcmPembeli,

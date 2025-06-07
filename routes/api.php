@@ -23,6 +23,7 @@ use App\Http\Controllers\PengirimanController;
 use App\Http\Controllers\PembeliController;
 use App\Http\Controllers\PembayaranController;
 use App\Http\Controllers\DetailPenjualanController;
+use App\Http\Controllers\LaporanController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -62,6 +63,8 @@ Route::group(['middleware' => ['auth:sanctum', 'owner']], function () {
     Route::get('produk-untuk-donasi', [ProdukController::class, 'getProdukUntukDonasi']);
     Route::get('donasi', [DonasiController::class, 'index']);
     Route::post('donasi', [DonasiController::class, 'store']);
+    Route::get('laporan-penjualan-per-kategori', [LaporanController::class, 'laporanPenjualanKategori']);
+    Route::get('laporan-barang-hangus', [LaporanController::class, 'laporanBarangHangus']);
 });
 
 
