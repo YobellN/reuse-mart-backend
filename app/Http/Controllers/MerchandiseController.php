@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Merchandise;
 use Illuminate\Http\Request;
 
 class MerchandiseController 
@@ -11,7 +12,12 @@ class MerchandiseController
      */
     public function index()
     {
-        //
+        $data = Merchandise::all();
+
+        return response()->json([
+            'message' => 'Data Merchandise',
+            'data' => $data
+        ]);
     }
 
     /**

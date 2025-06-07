@@ -24,6 +24,9 @@ use App\Http\Controllers\PembeliController;
 use App\Http\Controllers\PembayaranController;
 use App\Http\Controllers\DetailPenjualanController;
 use App\Http\Controllers\LaporanController;
+use App\Http\Controllers\MerchandiseController;
+use App\Http\Controllers\TransaksiMerchandiseController;
+use App\Models\TransaksiMerchandise;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -153,6 +156,10 @@ Route::group(['middleware' => ['auth:sanctum', 'pembeli']], function () {
 
     //RATING PRODUK
     Route::post('rate-produk-pembelian/{id}', [ProdukController::class, 'rateProdukPembelian']);
+
+
+    Route::get('merchandise', [MerchandiseController::class, 'index']);
+    Route::post('transaksi-merchandise/{id}', [TransaksiMerchandiseController::class, 'store']);
 
 });
 
