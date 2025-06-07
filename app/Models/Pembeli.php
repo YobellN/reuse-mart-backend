@@ -50,4 +50,9 @@ class Pembeli extends Model
     {
         return $this->hasOne(Keranjang::class, 'id_pembeli', 'id_pembeli');
     }
+
+    public function transaksiMerchandise()
+    {
+        return $this->hasMany(TransaksiMerchandise::class, 'id_pembeli', 'id_pembeli');
+    }
 }
