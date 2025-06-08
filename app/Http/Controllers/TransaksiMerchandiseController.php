@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Merchandise;
+use App\Models\TransaksiMerchandise;
 use Illuminate\Http\Request;
 
-class TransaksiMerchandiseController 
+class TransaksiMerchandiseController
 {
     /**
      * Display a listing of the resource.
@@ -25,9 +27,41 @@ class TransaksiMerchandiseController
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request, $id)
     {
-        //
+        $user = $request->user();
+        $pembeli = $user->pembeli;
+
+        $merchandise = Merchandise::where('id_merchandise', $id)->first();
+
+        if (!$merchandise) {
+            return response()->json(['message' => 'Merchandise tidak ditemukan'], 404);
+        }
+
+        if ($merchandise->stok < 1) {
+            return response()->json(['message' => 'Stok merchandise habis'], 400);
+        }
+
+        if ($pembeli->poin < $merchandise->poin_penukaran) {
+            return response()->json(['message' => 'Poin Anda tidak mencukupi'], 400);
+        }
+
+        TransaksiMerchandise::create([
+            'id_pembeli' => $pembeli->id_pembeli,
+            'id_merchandise' => $merchandise->id_merchandise,
+            'tanggal_transaksi' => now(),
+            'status_transaksi' => 'Diproses'
+        ]);
+
+        $merchandise->update([
+            'stok' => $merchandise->stok - 1
+        ]);
+
+        $pembeli->update([
+            'poin' => $pembeli->poin - $merchandise->poin_penukaran
+        ]);
+
+        return response()->json(['message' => 'Berhasil klaim merchandise'], 201);
     }
 
     /**
