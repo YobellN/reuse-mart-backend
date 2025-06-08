@@ -243,4 +243,22 @@ class PegawaiController
             'data' => $kurir
         ]);
     }
+
+    public function getPegawai(Request $request)
+    {
+        $user = $request->user();
+        $pegawai = Pegawai::with('user', 'jabatan')->where('id_user', $user->id_user)->first();
+
+        if (!$pegawai) {
+            return response()->json([
+                'message' => 'Pegawai tidak ditemukan',
+                'errors' => ['id' => 'Pegawai tidak ditemukan'],
+            ], 404);
+        }
+
+        return response()->json([
+            'message' => 'Data Pegawai',
+            'data' => $pegawai
+        ]);
+    }
 }

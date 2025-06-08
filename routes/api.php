@@ -26,6 +26,7 @@ use App\Http\Controllers\DetailPenjualanController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\MerchandiseController;
 use App\Http\Controllers\TransaksiMerchandiseController;
+use App\Models\Pegawai;
 use App\Models\TransaksiMerchandise;
 
 Route::get('/user', function (Request $request) {
@@ -88,7 +89,7 @@ Route::group(['middleware' => ['auth:sanctum', 'cs']], function () {
 
     Route::get('diskusi/', [DiskusiController::class, 'index']);
     Route::delete('diskusi/{id}', [DiskusiController::class, 'destroy']);
-    
+
     // VERIFIKASI PEMBAYARAN
     Route::post('konfirmasiPembayaran/{id_penjualan}', [PembayaranController::class, 'konfirmasiPembayaran']);
     Route::post('tolakPembayaran/{id_penjualan}', [PembayaranController::class, 'tolakPembayaran']);
@@ -126,6 +127,11 @@ Route::group(['middleware' => ['auth:sanctum', 'kurir']], function () {
     Route::patch('kurir/konfirmasi-mengirim-kurir/{id}', [PengirimanController::class, 'dikirimKurir']);
 });
 
+Route::group(['middleware' => ['auth:sanctum', 'hunter']], function () {
+    Route::get('hunter/get-pegawai', [PegawaiController::class, 'getPegawai']);
+});
+
+
 Route::group(['middleware' => ['auth:sanctum', 'pembeli']], function () {
     Route::resource('penjualan', PenjualanController::class);
     Route::resource('alamat', AlamatController::class);
@@ -160,7 +166,6 @@ Route::group(['middleware' => ['auth:sanctum', 'pembeli']], function () {
 
     Route::get('merchandise', [MerchandiseController::class, 'index']);
     Route::post('transaksi-merchandise/{id}', [TransaksiMerchandiseController::class, 'store']);
-
 });
 
 Route::group(['middleware' => ['auth:sanctum', 'penitip']], function () {
