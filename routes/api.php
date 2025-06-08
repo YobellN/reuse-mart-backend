@@ -28,8 +28,8 @@ use App\Http\Controllers\MerchandiseController;
 use App\Http\Controllers\TransaksiMerchandiseController;
 use App\Models\Pegawai;
 use App\Models\TransaksiMerchandise;
-use Symfony\Component\HttpKernel\DataCollector\RequestDataCollector;
-use Symfony\Component\HttpKernel\DataCollector\RequestDataCollector;
+// use Symfony\Component\HttpKernel\DataCollector\RequestDataCollector;
+// use Symfony\Component\HttpKernel\DataCollector\RequestDataCollector;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -69,6 +69,10 @@ Route::group(['middleware' => ['auth:sanctum', 'owner']], function () {
     Route::get('produk-untuk-donasi', [ProdukController::class, 'getProdukUntukDonasi']);
     Route::get('donasi', [DonasiController::class, 'index']);
     Route::post('donasi', [DonasiController::class, 'store']);
+    Route::get('donasiPerTahun/{id}', [DonasiController::class, 'donasiPerTahun']);
+    Route::get('getRekapRequest', [RequestDonasiController::class, 'getRekapRequest']);
+    Route::get('getIdPenitipTerakhir', [PenitipController::class, 'getIdPenitipTerakhir']);
+    Route::get('getLaporanPenitip', [PenitipController::class, 'getLaporanPenitip']);
 });
 
 
@@ -125,6 +129,9 @@ Route::group(['middleware' => ['auth:sanctum', 'gudang']], function () {
 // untuk kurir
 Route::group(['middleware' => ['auth:sanctum', 'kurir']], function () {
     Route::patch('kurir/konfirmasi-mengirim-kurir/{id}', [PengirimanController::class, 'dikirimKurir']);
+    Route::get('kurir/get-pegawai', [PegawaiController::class, 'getPegawai']);
+    Route::get('kurir/getPengirimanKurir', [PengirimanController::class, 'getPengirimanKurir']);
+    Route::post('kurir/konfirmasiSelesaiPengiriman/{id}', [PengirimanController::class, 'konfirmasiSelesaiPengiriman']);
 });
 
 Route::group(['middleware' => ['auth:sanctum', 'hunter']], function () {
