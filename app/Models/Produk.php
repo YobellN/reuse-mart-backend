@@ -45,7 +45,7 @@ class Produk extends Model
 
     public function detailPenjualan()
     {
-        return $this->hasMany(DetailPenjualan::class, 'id_produk', 'id_produk');
+        return $this->hasOne(DetailPenjualan::class, 'id_produk', 'id_produk');
     }
 
     public function detailPenitipan()

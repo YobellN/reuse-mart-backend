@@ -402,4 +402,96 @@ class PengirimanController
             'data' => $penjualan
         ], 200);
     }
+
+    // mengambil semua pengiriman berdasarkan id kurir. Beserta alamat pengiriman, nama pembeli, dan status pengiriman.
+    public function getPengirimanKurir(Request $request)
+    {
+        $id_kurir = $request->user()->pegawai()->first()->id_pegawai;
+        $pengiriman = Pengiriman::with([
+            'alamat.pembeli.user',
+        ])->where('id_kurir', $id_kurir)->get();
+        if ($pengiriman->isEmpty()) {
+            return response()->json([
+                'message' => 'Tidak ada pengiriman untuk kurir ini',
+                'data' => []
+            ], 404);
+        }
+        return response()->json([
+            'message' => 'Daftar Pengiriman Kurir',
+            'data' => $pengiriman
+        ], 200);
+    }
+
+    // FUNGSI YANG MENGAMBIL ID PENJUALAN DARI PARAMETER LANGSUNG, LALU ID PENJUALANNYA DIAMBIL DATANYA DARI PENGIRIMAN. LALU STATUSNYA DIUBAH JADI 'Selesai' DAN DIKONFIRMASI KE PEMBELI.
+    // Kalau udah, ambil id penjualan dari pengiriman, lalu pakai tambahPoinSaldo dari PenjualanController untuk menambah poin ke pembeli.
+    // Lalu kirim notifikasi ke pembeli bahwa transaksi sudah selesai.
+    public function konfirmasiSelesaiPengiriman($id)
+    {
+        $pengiriman = Pengiriman::with([
+            'penjualan.pembeli.user',
+        ])->find($id);
+
+        if (!$pengiriman) {
+            return response()->json([
+                'message' => 'Pengiriman tidak ditemukan',
+                'errors' => ['id' => 'Pengiriman tidak ditemukan'],
+            ], 404);
+        }
+
+        $penjualan = $pengiriman->penjualan;
+
+        if (!$penjualan) {
+            return response()->json([
+                'message' => 'Penjualan tidak ditemukan',
+                'errors' => ['id' => 'Penjualan tidak ditemukan'],
+            ], 404);
+        }
+
+        $pengiriman->update([
+            'status_pengiriman' => 'Selesai',
+        ]);
+
+        $penjualan->update([
+            'status_penjualan' => 'Selesai',
+        ]);
+
+        // Tambah poin saldo ke pembeli alias komisi (poin dan komisinya berhasil masuk)
+        $penjualanController = new PenjualanController();
+        $penjualanController->tambahPoinSaldo($pengiriman->id_penjualan);
+
+        // Notifikasi ke penitip bahwa barang titipan dia sudah dikirim
+        $detailPenjualan = DetailPenjualan::where('id_penjualan', $penjualan->id_penjualan)->get();
+        foreach ($detailPenjualan as $detail) {
+            $produk = Produk::with([
+                'detailPenitipan.penitipan.penitip'
+            ])->find($detail->id_produk);
+
+            // Pastikan semua relasi tersedia
+            $penitipan = $produk->detailPenitipan->penitipan ?? null;
+            $penitip = $penitipan?->penitip ?? null;
+            // Done, notifikasinya terkirim
+            if ($penitip && $penitip->id_user) {
+                FcmChannel::sendToUser(
+                    $penitip->id_user,
+                    'Barang Titipan Anda telah Sampai ke pembeli',
+                    "Produk yang Anda titipkan telah Sampai ke pembeli. Terima kasih telah menggunakan ReUse Mart."
+                );
+            }
+        }
+        // Notifikasi ke pembeli bahwa transaksi sudah selesai (Done, notifikasinya terkirim)
+        $fcmPembeli = $penjualan->pembeli->user->fcm_token;
+        if ($fcmPembeli) {
+            FcmChannel::send(
+                $fcmPembeli,
+                'Barang yang Anda Beli Sudah Sampai',
+                "Barang Anda telah Sampai. Terima kasih telah berbelanja di ReUse Mart!"
+            );
+        }
+
+        return response()->json([
+            'message' => 'Pengiriman berhasil dikonfirmasi selesai',
+            'data' => $pengiriman
+        ], 200);
+    }
+
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Penitip;
 use App\Models\Produk;
+use App\Models\Komisi;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Hash;
@@ -113,20 +114,20 @@ class PenitipController
         }
 
         $avgRating = Produk::join('detail_penitipan', 'produk.id_produk', '=', 'detail_penitipan.id_produk')
-            ->join('penitipan','detail_penitipan.id_penitipan', '=', 'penitipan.id_penitipan')
+            ->join('penitipan', 'detail_penitipan.id_penitipan', '=', 'penitipan.id_penitipan')
             ->where('penitipan.id_penitip', $id)
-            ->avg('produk.rating'); 
+            ->avg('produk.rating');
 
-        $avgRating = $avgRating ? round((float)$avgRating, 2) : 5; 
+        $avgRating = $avgRating ? round((float)$avgRating, 2) : 5;
 
         $total_produk = Produk::join('detail_penitipan', 'produk.id_produk', '=', 'detail_penitipan.id_produk')
-            ->join('penitipan','detail_penitipan.id_penitipan', '=', 'penitipan.id_penitipan')
+            ->join('penitipan', 'detail_penitipan.id_penitipan', '=', 'penitipan.id_penitipan')
             ->where('penitipan.id_penitip', $id)
             ->count();
 
         $penitip->rating = $avgRating;
         $penitip->total_produk = $total_produk;
-        
+
         return response()->json([
             'message' => 'Data Penitip',
             'data'    => $penitip
@@ -145,20 +146,20 @@ class PenitipController
         }
 
         $avgRating = Produk::join('detail_penitipan', 'produk.id_produk', '=', 'detail_penitipan.id_produk')
-            ->join('penitipan','detail_penitipan.id_penitipan', '=', 'penitipan.id_penitipan')
+            ->join('penitipan', 'detail_penitipan.id_penitipan', '=', 'penitipan.id_penitipan')
             ->where('penitipan.id_penitip', $id)
-            ->avg('produk.rating'); 
+            ->avg('produk.rating');
 
         $avgRating = $avgRating ? round((float)$avgRating, 2) : null; //ini ku ubah jadi null biar bisa kelihatan kalo emang blum ada rating di user tsb
 
         $total_produk = Produk::join('detail_penitipan', 'produk.id_produk', '=', 'detail_penitipan.id_produk')
-            ->join('penitipan','detail_penitipan.id_penitipan', '=', 'penitipan.id_penitipan')
+            ->join('penitipan', 'detail_penitipan.id_penitipan', '=', 'penitipan.id_penitipan')
             ->where('penitipan.id_penitip', $id)
             ->count();
 
         $penitip->rating = $avgRating;
         $penitip->total_produk = $total_produk;
-        
+
         return response()->json([
             'message' => 'Data Penitip',
             'data'    => $penitip
@@ -353,5 +354,89 @@ class PenitipController
                 'penitip' => $penitip
             ]
         ], 200);
+    }
+
+    public function getLaporanPenitip(Request $request)
+    {
+        $request->validate([
+            'bulan' => 'required|integer|min:1|max:12',
+            'tahun' => 'required|integer|min:2000|max:' . date('Y'),
+            'id_penitip' => 'required|exists:penitip,id_penitip',
+        ], [
+            'bulan.required' => 'Bulan tidak boleh kosong',
+            'bulan.integer' => 'Bulan harus berupa angka',
+            'bulan.min' => 'Bulan minimal 1',
+            'bulan.max' => 'Bulan maksimal 12',
+            'tahun.required' => 'Tahun tidak boleh kosong',
+            'tahun.integer' => 'Tahun harus berupa angka',
+            'tahun.min' => 'Tahun minimal 2000',
+            'tahun.max' => 'Tahun maksimal tahun ini',
+            'id_penitip.required' => 'ID Penitip tidak boleh kosong',
+            'id_penitip.exists' => 'ID Penitip tidak ditemukan',
+        ]);
+        $bulan = $request->bulan;
+        $tahun = $request->tahun;
+        $id_penitip = $request->id_penitip;
+        $penitip = Penitip::with('user')->find($id_penitip);
+        if (!$penitip) {
+            return response()->json([
+                'message' => 'Penitip tidak ditemukan',
+                'errors' => ['id_penitip' => 'Penitip tidak ditemukan'],
+            ], 404);
+        }
+
+        $transaksi = Komisi::with([
+            'detail.produk.detailPenitipan.penitipan',
+            'detail.penjualan',
+            'penitip.user',
+        ])
+            ->where('id_penitip', $id_penitip)
+            ->whereHas('detail.penjualan', function ($query) use ($bulan, $tahun) {
+                $query->whereMonth('tanggal_penjualan', $bulan)
+                    ->whereYear('tanggal_penjualan', $tahun);
+            })
+            ->get();
+
+
+        $rekap = $transaksi->map(function ($item) {
+            return  [
+                'kode_produk' => $item->detail->produk->id_produk,
+                'nama_produk' => $item->detail->produk->nama_produk,
+                'tanggal_masuk' => $item->detail->produk->detailPenitipan->penitipan->tanggal_penitipan,
+                'tanggal_laku' => $item->detail->penjualan->tanggal_penjualan,
+                'harga_jual_bersih' => $item->komisi_penitip,
+                'bonus_terjual_cepat' => $item->bonus_penitip,
+                'pendapatan' => $item->komisi_penitip + $item->bonus_penitip,
+            ];
+        });
+
+        return response()->json([
+            'message' => 'Laporan Penitip',
+            'data' => [
+                'id_penitip' => $penitip->id_penitip,
+                'nama_penitip' => $penitip->user->nama,
+                'bulan' => $bulan,
+                'tahun' => $tahun,
+                'data' => $rekap,
+            ]
+        ], 200);
+    }
+
+    public function getIdPenitipTerakhir()
+    {
+        $lastPenitip = Penitip::orderByDesc('id_penitip')->first();
+        if (!$lastPenitip) {
+            return response()->json([
+            'message' => 'Tidak ada data penitip',
+            'data' => null,
+            ]);
+        }
+
+        $data = $lastPenitip->id_penitip;
+
+        return response()->json([
+            'message' => 'Penitip terakhir',
+            'data' => $data,
+        ]);
     }
 }

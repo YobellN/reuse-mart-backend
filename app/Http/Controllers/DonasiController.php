@@ -148,4 +148,56 @@ class DonasiController
     {
         //
     }
+
+    public function donasiPerTahun(string $tahun)
+    {
+        // Validasi: tahun harus 4 digit angka dan masuk akal
+        if (!preg_match('/^\d{4}$/', $tahun) || $tahun < 2000 || $tahun > date('Y')) {
+            return response()->json([
+                'message' => 'Tahun tidak valid. Masukkan tahun 4 digit yang benar.',
+            ], 422);
+        }
+
+        $donasi = Donasi::with([
+            'requestDonasi.organisasi.user',
+            'produk.detailPenitipan.penitipan.penitip.user'
+        ])
+            ->whereYear('tanggal_donasi', $tahun)
+            ->get();
+
+        $customDonasi = $donasi->map(function ($item) {
+            return [
+                'id_produk'       => $item->produk->id_produk, // kode produk
+                'nama_produk'     => $item->produk->nama_produk,
+                'id_penitip'      => $item->produk->detailPenitipan->penitipan->penitip->id_penitip,
+                'nama_penitip'    => $item->produk->detailPenitipan->penitipan->penitip->user->nama,
+                'tanggal_donasi'  => $item->tanggal_donasi,
+                'nama_organisasi' => $item->requestDonasi->organisasi->user->nama,
+                'nama_penerima'   => $item->nama_penerima,
+            ];
+        });
+
+        return response()->json([
+            'message' => 'Data Donasi per Tahun',
+            'tahun' => $tahun,
+            'data' =>  $customDonasi
+        ], 200);
+    }
+
+    // Fungsi untuk mendapatkan tahun terlama donasi
+    public function tahunTerlama()
+    {
+        $tahunTerlama = Donasi::min(DB::raw('YEAR(tanggal_donasi)'));
+
+        if (!$tahunTerlama) {
+            return response()->json([
+                'message' => 'Tidak ada data donasi yang ditemukan.',
+            ], 404);
+        }
+
+        return response()->json([
+            'message' => 'Tahun terlama donasi',
+            'tahun' => $tahunTerlama,
+        ], 200);
+    }
 }
