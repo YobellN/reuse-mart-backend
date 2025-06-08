@@ -300,6 +300,25 @@ class PenitipController
         ], 200);
     }
 
+    // public function getPenitip(Request $request) 
+    // {
+    //     $user = $request->user();
+
+    //     $penitip = Penitip::with('user')->where('id_user', $user->id_user)->first();
+
+    //     if (!$penitip) {
+    //         return response()->json([
+    //             'message' => 'Penitip ora ditemukan',
+    //             'errors' => "Penitip ora2 ditemukan",
+    //         ], 404);
+    //     }
+
+    //     return response()->json([
+    //         'message' => 'Data Penitip',
+    //         'data' => $penitip
+    //     ], 200);
+    // }
+
     public function getPenitip(Request $request) 
     {
         $user = $request->user();
@@ -308,14 +327,31 @@ class PenitipController
 
         if (!$penitip) {
             return response()->json([
-                'message' => 'Penitip ora ditemukan',
-                'errors' => "Penitip ora2 ditemukan",
+                'message' => 'Penitip tidak ditemukan',
+                'errors' => ['id' => 'Penitip tidak ditemukan'],
             ], 404);
         }
 
+        $avgRating = Produk::join('detail_penitipan', 'produk.id_produk', '=', 'detail_penitipan.id_produk')
+            ->join('penitipan','detail_penitipan.id_penitipan', '=', 'penitipan.id_penitipan')
+            ->where('penitipan.id_penitip', $penitip->id_penitip)
+            ->avg('produk.rating');
+
+        $avgRating = $avgRating ? round((float)$avgRating, 2) : null;
+
+        $totalProduk = Produk::join('detail_penitipan', 'produk.id_produk', '=', 'detail_penitipan.id_produk')
+            ->join('penitipan','detail_penitipan.id_penitipan', '=', 'penitipan.id_penitipan')
+            ->where('penitipan.id_penitip', $penitip->id_penitip)
+            ->count();
+
+        $penitip->rating = $avgRating;
+        $penitip->total_produk = $totalProduk;
+
         return response()->json([
             'message' => 'Data Penitip',
-            'data' => $penitip
+            'data' => [
+                'penitip' => $penitip
+            ]
         ], 200);
     }
 }
