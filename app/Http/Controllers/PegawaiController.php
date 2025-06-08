@@ -268,7 +268,7 @@ class PegawaiController
     {
         $user = $request->user();
         $hunter = Pegawai::with('user', 'jabatan')->where('id_user', $user->id_user)->first();
-
+        $status = $request->input('status');
 
         if (!$hunter) {
             return response()->json([
@@ -277,12 +277,31 @@ class PegawaiController
             ], 404);
         }
 
-        $data = Produk::with([
+        $query = Produk::with([
             'kategori',
             'fotoProduk',
-            'detailPenitipan.penitipan.penitip.user',   
+            'detailPenitipan.penitipan.penitip.user',
             'detailPenjualan.komisi',
-        ])->get();
+        ])->whereHas('detailPenitipan.penitipan', function ($q) use ($hunter) {
+            $q->where('id_hunter', $hunter->id_pegawai);
+        });
+
+        if ($status) {
+            $query->where(function ($q) use ($status) {
+                if ($status == 'Selesai') {
+                    $q->whereIn('status_akhir_produk', ['Terjual', 'Produk untuk donasi', 'Didonasikan'])->whereHas('detailPenjualan.komisi');
+                } elseif ($status == 'Batal') {
+                    $q->whereIn('status_akhir_produk', ['Diambil', 'Akan Diambil', 'Batal']);
+                } else { // Selesai
+                    $q->where(function ($q2) {
+                        $q2->whereNull('status_akhir_produk')
+                            ->orWhereIn('status_akhir_produk', ['Sedang Dijual', 'Tidak Laku', 'Terjual', 'Produk untuk donasi', 'Didonasikan']);
+                    })->whereDoesntHave('detailPenjualan.komisi');
+                }
+            });
+        }
+
+        $data = $query->get();
 
         return response()->json([
             'message' => 'Data Barang Hunting',
