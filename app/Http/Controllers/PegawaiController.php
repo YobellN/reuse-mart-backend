@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Jabatan;
 use App\Models\User;
 use App\Models\Pegawai;
+use App\Models\Penitipan;
+use App\Models\Produk;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
@@ -259,6 +261,32 @@ class PegawaiController
         return response()->json([
             'message' => 'Data Pegawai',
             'data' => $pegawai
+        ]);
+    }
+
+    public function getBarangHunting(Request $request)
+    {
+        $user = $request->user();
+        $hunter = Pegawai::with('user', 'jabatan')->where('id_user', $user->id_user)->first();
+
+
+        if (!$hunter) {
+            return response()->json([
+                'message' => 'Pegawai tidak ditemukan',
+                'errors' => ['id' => 'Pegawai tidak ditemukan'],
+            ], 404);
+        }
+
+        $data = Produk::with([
+            'kategori',
+            'fotoProduk',
+            'detailPenitipan.penitipan.penitip.user',
+            'detailPenjualan.komisi',
+        ])->get();
+
+        return response()->json([
+            'message' => 'Data Barang Hunting',
+            'data' => $data
         ]);
     }
 }

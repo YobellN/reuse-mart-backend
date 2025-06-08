@@ -129,6 +129,7 @@ Route::group(['middleware' => ['auth:sanctum', 'kurir']], function () {
 
 Route::group(['middleware' => ['auth:sanctum', 'hunter']], function () {
     Route::get('hunter/get-pegawai', [PegawaiController::class, 'getPegawai']);
+    Route::get('hunter/get-barang-hunting', [PegawaiController::class, 'getBarangHunting']);
 });
 
 
