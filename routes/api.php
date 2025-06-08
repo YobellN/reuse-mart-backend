@@ -24,6 +24,7 @@ use App\Http\Controllers\PembeliController;
 use App\Http\Controllers\PembayaranController;
 use App\Http\Controllers\DetailPenjualanController;
 use App\Http\Controllers\LaporanController;
+use Symfony\Component\HttpKernel\DataCollector\RequestDataCollector;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -65,6 +66,12 @@ Route::group(['middleware' => ['auth:sanctum', 'owner']], function () {
     Route::post('donasi', [DonasiController::class, 'store']);
     Route::get('laporan-penjualan-per-kategori', [LaporanController::class, 'laporanPenjualanKategori']);
     Route::get('laporan-barang-hangus', [LaporanController::class, 'laporanBarangHangus']);
+
+    Route::get('donasiPerTahun/{tahun}', [DonasiController::class, 'donasiPerTahun']);
+    Route::get('tahunTerlamaDonasi', [DonasiController::class, 'tahunTerlama']);
+    Route::get('getRekapRequest', [RequestDonasiController::class, 'getRekapRequest']);
+    Route::get('getLaporanPenitip', [PenitipController::class, 'getLaporanPenitip']);
+    Route::get('getIdPenitipTerakhir', [PenitipController::class, 'getIdPenitipTerakhir']);
 });
 
 

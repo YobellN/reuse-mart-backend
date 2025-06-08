@@ -169,4 +169,27 @@ class RequestDonasiController
             'data' => $request_donasi
         ], 200);
     }
+
+    // Rekap request donasi (semua yang belum terpenuhi)
+    public function getRekapRequest()
+    {
+        $request_donasi = RequestDonasi::with('organisasi.user')
+            ->where('status_request', 0)
+            ->get();
+
+        // Mapping ke struktur custom
+        $rekap = $request_donasi->map(function ($item) {
+            return [
+                'id_organisasi' => $item->organisasi->id_organisasi,
+                'nama_organisasi' => $item->organisasi->user->nama,
+                'alamat_organisasi' => $item->organisasi->alamat_organisasi,
+                'request' => $item->deskripsi_request,
+            ];
+        });
+
+        return response()->json([
+            'message' => 'Data Rekap Request Donasi',
+            'data' => $rekap
+        ], 200);
+    }
 }
