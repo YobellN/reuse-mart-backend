@@ -30,6 +30,7 @@ class NotifPenitipan extends Command
     public function handle()
     {
     try {
+        $today = Carbon::today();
         $reminderDate = Carbon::now()->addDays(3)->toDateString(); 
         $expiredDate = Carbon::now()->toDateString();              
 
@@ -70,6 +71,7 @@ class NotifPenitipan extends Command
             }
         }
 
+        //penitipan habis hari ini tenggatnya
         foreach ($penitipanExpired as $penitipan) {
             $this->info('Penitipan ID ' . $penitipan->id_penitipan . ' (Hari H)');
             $fcmPenitip = $penitipan->penitip()->first()->user->fcm_token;
@@ -80,6 +82,36 @@ class NotifPenitipan extends Command
                     'Pengingat Masa Titip Barang Habis!',
                     'Masa titip barang Anda telah habis pada tanggal ' . Carbon::parse($penitipan->tenggat_penitipan)->locale('id')->isoFormat('dddd, D MMMM YYYY') . '. Silakan segera mengambil barang Anda.'
                 );
+            }
+
+            // ubah status produk ke tidak laku klo penitipannya habis hari ini
+            if (is_null($penitipan->status_akhir_produk)) {
+                foreach ($penitipan->detailPenitipan as $detail) {
+                    if ($detail->produk) {
+                        $detail->produk->status_akhir_produk = 'Tidak Laku';
+                        $detail->produk->save();
+                    }
+                }
+                $penitipan->status_akhir_produk = 'Tidak Laku';
+                $penitipan->save();
+                $this->info('Penitipan ID ' . $penitipan->id_penitipan . ' status diubah menjadi "Tidak Laku"');
+            }
+
+            //ubah jadi barang ke list donasi kalo gak diambil 7 hari
+           if (
+                $penitipan->batas_pengambilan &&
+                $penitipan->batas_pengambilan == Carbon::today() &&
+                $penitipan->status_akhir_produk === 'Tidak Laku'
+            ) {
+                foreach ($penitipan->detailPenitipan as $detail) {
+                    if ($detail->produk) {
+                        $detail->produk->status_akhir_produk = 'Produk untuk donasi';
+                        $detail->produk->save();
+                    }
+                }
+                $penitipan->status_akhir_produk = 'Produk untuk donasi';
+                $penitipan->save();
+                $this->info('Penitipan ID ' . $penitipan->id_penitipan . ' status diubah menjadi "Produk untuk donasi"');
             }
         }
 
