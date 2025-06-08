@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
+
 
 class PenitipController
 {
@@ -295,6 +297,25 @@ class PenitipController
             'data' => [
                 'nik' => $penitip->nik
             ]
+        ], 200);
+    }
+
+    public function getPenitip(Request $request) 
+    {
+        $user = $request->user();
+
+        $penitip = Penitip::with('user')->where('id_user', $user->id_user)->first();
+
+        if (!$penitip) {
+            return response()->json([
+                'message' => 'Penitip ora ditemukan',
+                'errors' => "Penitip ora2 ditemukan",
+            ], 404);
+        }
+
+        return response()->json([
+            'message' => 'Data Penitip',
+            'data' => $penitip
         ], 200);
     }
 }

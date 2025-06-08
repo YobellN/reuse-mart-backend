@@ -129,6 +129,7 @@ Route::group(['middleware' => ['auth:sanctum', 'kurir']], function () {
 
 Route::group(['middleware' => ['auth:sanctum', 'hunter']], function () {
     Route::get('hunter/get-pegawai', [PegawaiController::class, 'getPegawai']);
+    Route::get('hunter/get-barang-hunting', [PegawaiController::class, 'getBarangHunting']);
 });
 
 
@@ -174,6 +175,7 @@ Route::group(['middleware' => ['auth:sanctum', 'penitip']], function () {
     Route::patch('penitipan/konfirmasi-pengambilan/{id}', [PenitipanController::class, 'konfirmasiPengambilan']);
     Route::patch('penitipan/konfirmasi-donasi/{id}', [PenitipanController::class, 'konfirmasiDonasi']);
     Route::get('/get-detail-penjualan-penitip', [PenjualanController::class, 'getDetailPenjualanByPenitip']);
+    Route::get('penitip/get-penitip', [PenitipController::class, 'getPenitip']);
 });
 
 Route::group(['middleware' => ['auth:sanctum', 'organisasi']], function () {
