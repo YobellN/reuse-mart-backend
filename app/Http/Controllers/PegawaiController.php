@@ -280,7 +280,7 @@ class PegawaiController
         $data = Produk::with([
             'kategori',
             'fotoProduk',
-            'detailPenitipan.penitipan.penitip.user',
+            'detailPenitipan.penitipan.penitip.user',   
             'detailPenjualan.komisi',
         ])->get();
 
