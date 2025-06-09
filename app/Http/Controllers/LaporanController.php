@@ -13,15 +13,15 @@ class LaporanController
         $tahun = $request->input('tahun') ?? date('Y');
 
         $data = DB::select("
-            SELECT k.nama_kategori,
+            SELECT 
+                k.nama_kategori,
                 SUM(CASE WHEN p.status_akhir_produk = 'Terjual' THEN 1 ELSE 0 END) AS jumlah_item_terjual,
-                SUM(CASE WHEN p.status_akhir_produk != 'Terjual' AND p.status_akhir_produk IS NOT NULL THEN 1 ELSE 0 END) AS jumlah_item_gagal_terjual
+                SUM(CASE WHEN p.status_akhir_produk IS NOT NULL AND p.status_akhir_produk <> 'Terjual' THEN 1 ELSE 0 END) AS jumlah_item_gagal_terjual
             FROM kategori_produk k
             JOIN produk p ON k.id_kategori = p.id_kategori
-            JOIN detail_penjualan dp ON p.id_produk = dp.id_produk
-            JOIN penjualan pj ON dp.id_penjualan = pj.id_penjualan
-            WHERE YEAR(pj.tanggal_penjualan) = ?
-            GROUP BY k.nama_kategori
+            LEFT JOIN detail_penjualan dp ON p.id_produk = dp.id_produk
+            LEFT JOIN penjualan pj ON dp.id_penjualan = pj.id_penjualan AND YEAR(pj.tanggal_penjualan) = ?
+            GROUP BY k.nama_kategori;
         ", [$tahun]);
 
         return response()->json([
@@ -35,7 +35,8 @@ class LaporanController
         $tahun = $request->input('tahun') ?? date('Y');
         $bulan = $request->input('bulan') ?? date('m');
 
-        $data = DB::select("
+        $data = DB::select(
+            "
             SELECT 
                 produk.id_produk,
                 produk.nama_produk,
@@ -55,7 +56,8 @@ class LaporanController
             AND (
                 produk.status_akhir_produk = 'Tidak Laku'
                 OR produk.status_akhir_produk IS NULL)",
-            [$tahun, $bulan]);
+            [$tahun, $bulan]
+        );
 
         return response()->json([
             'message' => 'Laporan Barang Hangus',
