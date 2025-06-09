@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\FotoProduk;
 use Illuminate\Support\Facades\Storage;;
+
 use App\Models\Produk;
 use App\Models\Pegawai;
 use App\Models\Penitip;
@@ -53,7 +54,7 @@ class PenitipanController
                 'id_penitip' => 'required|exists:penitip,id_penitip',
                 'id_qc' => 'required|exists:pegawai,id_pegawai',
                 'id_hunter' => 'nullable|exists:pegawai,id_pegawai',
-              
+
                 //bagian array produk
                 'produk' => 'required|array|min:1',
                 'produk.*.nama_produk' => 'required|string|min:3',
@@ -71,7 +72,7 @@ class PenitipanController
                 'id_qc.required' => 'QC tidak boleh kosong',
                 'id_qc.exists' => 'QC tidak ditemukan',
                 'id_hunter.exists' => 'Hunter tidak ditemukan',
-               
+
                 'produk.required' => 'Produk tidak boleh kosong',
                 'produk.min' => 'Minimal 1 produk',
                 'produk.*.nama_produk.required' => 'Nama produk tidak boleh kosong',
@@ -101,7 +102,7 @@ class PenitipanController
             $prefix = now()->format('y.m') . '.';
 
             $id_penitipan = $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
-           
+
             $tenggat_penitipan = $tanggalSekarang->copy()->addDays(30);
             $tenggat_pengambilan = $tenggat_penitipan->copy()->addDays(7);
 
@@ -208,102 +209,102 @@ class PenitipanController
     /**
      * Update the specified resource in storage.
      */
-   public function update(Request $request, $id_penitipan)
+    public function update(Request $request, $id_penitipan)
     {
-    DB::beginTransaction();
+        DB::beginTransaction();
 
-    try {
-        $request->validate([
-            'id_penitip' => 'sometimes|exists:penitip,id_penitip',
-            'id_qc' => 'sometimes|exists:pegawai,id_pegawai',
-            'id_hunter' => 'nullable|exists:pegawai,id_pegawai',
+        try {
+            $request->validate([
+                'id_penitip' => 'sometimes|exists:penitip,id_penitip',
+                'id_qc' => 'sometimes|exists:pegawai,id_pegawai',
+                'id_hunter' => 'nullable|exists:pegawai,id_pegawai',
 
-            'produk' => 'sometimes|array|min:1',
-            'produk.*.nama_produk' => 'sometimes|string|min:3',
-            'produk.*.deskripsi_produk' => 'sometimes|string',
-            'produk.*.id_kategori' => 'sometimes|exists:kategori_produk,id_kategori',
-            'produk.*.harga_produk' => 'sometimes|numeric',
-            'produk.*.waktu_garansi' => 'nullable|date',
-            'produk.*.foto_produk' => 'sometimes|array|min:2|max:10',
-            'produk.*.foto_produk.*.path_foto' => 'required|file|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
-        ]);
+                'produk' => 'sometimes|array|min:1',
+                'produk.*.nama_produk' => 'sometimes|string|min:3',
+                'produk.*.deskripsi_produk' => 'sometimes|string',
+                'produk.*.id_kategori' => 'sometimes|exists:kategori_produk,id_kategori',
+                'produk.*.harga_produk' => 'sometimes|numeric',
+                'produk.*.waktu_garansi' => 'nullable|date',
+                'produk.*.foto_produk' => 'sometimes|array|min:2|max:10',
+                'produk.*.foto_produk.*.path_foto' => 'required|file|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+            ]);
 
-        $penitipan = Penitipan::findOrFail($id_penitipan);
+            $penitipan = Penitipan::findOrFail($id_penitipan);
 
-        $penitipan->fill([
-            'id_penitip' => $request->input('id_penitip', $penitipan->id_penitip),
-            'id_qc' => $request->input('id_qc', $penitipan->id_qc),
-            'id_hunter' => $request->input('id_hunter', $penitipan->id_hunter),
-        ])->save();
+            $penitipan->fill([
+                'id_penitip' => $request->input('id_penitip', $penitipan->id_penitip),
+                'id_qc' => $request->input('id_qc', $penitipan->id_qc),
+                'id_hunter' => $request->input('id_hunter', $penitipan->id_hunter),
+            ])->save();
 
-        if ($request->has('produk')) {
-            $status_hunting = $penitipan->id_hunter ? 1 : 0;
+            if ($request->has('produk')) {
+                $status_hunting = $penitipan->id_hunter ? 1 : 0;
 
-            $detailPenitipan = $penitipan->detailPenitipan;
-            
-            
-            if(is_array($request->produk)){
-                foreach ($request->produk as $item) {
-                $produk = Produk::find($item['id_produk']);
-                if (!$produk) {
-                    return response()->json([
-                        'message' => 'Produk tidak ditemukan',
-                        'errors'  => ['id_produk' => 'Produk tidak ditemukan'],
-                    ], 404);
-                }
+                $detailPenitipan = $penitipan->detailPenitipan;
 
-                $produk->update([
-                    'nama_produk' => $item['nama_produk'],
-                    'deskripsi_produk' => $item['deskripsi_produk'],
-                    'id_kategori' => $item['id_kategori'],
-                    'harga_produk' => (float) $item['harga_produk'],
-                    'status_ketersediaan' => 1,
-                    'waktu_garansi' => $item['waktu_garansi'] ?? null,
-                    'status_produk_hunting' => $status_hunting,
-                ]);
-                
-                if(isset($item['foto_produk']) && is_array($item['foto_produk'])) {
-                    foreach ($produk->fotoProduk as $foto) {
-                        Storage::disk('public')->delete('foto_produk/' . $foto->path_foto);
-                        $foto->delete();
-                    }
 
-                    foreach ($item['foto_produk'] as $i => $foto) {
-                        if (!($foto['path_foto'] instanceof \Illuminate\Http\UploadedFile)) {
+                if (is_array($request->produk)) {
+                    foreach ($request->produk as $item) {
+                        $produk = Produk::find($item['id_produk']);
+                        if (!$produk) {
                             return response()->json([
-                                'status_code' => 422,
-                                'message' => 'File tidak valid',
-                                'errors' => ['path_foto' => 'File harus berupa gambar yang diupload'],
-                            ], 422);
+                                'message' => 'Produk tidak ditemukan',
+                                'errors'  => ['id_produk' => 'Produk tidak ditemukan'],
+                            ], 404);
                         }
 
-                        $file_name = $produk->id_produk . '_' . ($i + 1) . '.' . $foto['path_foto']->getClientOriginalExtension();
-                        $path = $foto['path_foto']->storeAs('foto_produk', $file_name, 'public');
-
-                        FotoProduk::create([
-                            'id_produk' => $produk->id_produk,
-                            'path_foto' => str_replace('foto_produk/', '', $path),
-                            'thumbnail' => $i === 0 ? 1 : 0,
+                        $produk->update([
+                            'nama_produk' => $item['nama_produk'],
+                            'deskripsi_produk' => $item['deskripsi_produk'],
+                            'id_kategori' => $item['id_kategori'],
+                            'harga_produk' => (float) $item['harga_produk'],
+                            'status_ketersediaan' => 1,
+                            'waktu_garansi' => $item['waktu_garansi'] ?? null,
+                            'status_produk_hunting' => $status_hunting,
                         ]);
+
+                        if (isset($item['foto_produk']) && is_array($item['foto_produk'])) {
+                            foreach ($produk->fotoProduk as $foto) {
+                                Storage::disk('public')->delete('foto_produk/' . $foto->path_foto);
+                                $foto->delete();
+                            }
+
+                            foreach ($item['foto_produk'] as $i => $foto) {
+                                if (!($foto['path_foto'] instanceof \Illuminate\Http\UploadedFile)) {
+                                    return response()->json([
+                                        'status_code' => 422,
+                                        'message' => 'File tidak valid',
+                                        'errors' => ['path_foto' => 'File harus berupa gambar yang diupload'],
+                                    ], 422);
+                                }
+
+                                $file_name = $produk->id_produk . '_' . ($i + 1) . '.' . $foto['path_foto']->getClientOriginalExtension();
+                                $path = $foto['path_foto']->storeAs('foto_produk', $file_name, 'public');
+
+                                FotoProduk::create([
+                                    'id_produk' => $produk->id_produk,
+                                    'path_foto' => str_replace('foto_produk/', '', $path),
+                                    'thumbnail' => $i === 0 ? 1 : 0,
+                                ]);
+                            }
+                        }
                     }
                 }
             }
-            }
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Penitipan berhasil diperbarui',
+                'data' => $penitipan
+            ], 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Gagal: ' . $e->getMessage()
+            ], 500);
         }
-
-        DB::commit();
-
-        return response()->json([
-            'message' => 'Penitipan berhasil diperbarui',
-            'data' => $penitipan
-        ], 200);
-    } catch (\Exception $e) {
-        DB::rollBack();
-        return response()->json([
-            'message' => 'Gagal: ' . $e->getMessage()
-        ], 500);
     }
-}
 
     /**
      * Remove the specified resource from storage.
