@@ -73,6 +73,8 @@ Route::group(['middleware' => ['auth:sanctum', 'owner']], function () {
     Route::get('produk-untuk-donasi', [ProdukController::class, 'getProdukUntukDonasi']);
     Route::get('donasi', [DonasiController::class, 'index']);
     Route::post('donasi', [DonasiController::class, 'store']);
+    Route::get('laporan-penjualan-per-kategori', [LaporanController::class, 'laporanPenjualanKategori']);
+    Route::get('laporan-barang-hangus', [LaporanController::class, 'laporanBarangHangus']);
     Route::get('donasiPerTahun/{id}', [DonasiController::class, 'donasiPerTahun']);
     Route::get('getRekapRequest', [RequestDonasiController::class, 'getRekapRequest']);
     Route::get('getIdPenitipTerakhir', [PenitipController::class, 'getIdPenitipTerakhir']);
