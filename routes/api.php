@@ -105,6 +105,12 @@ Route::group(['middleware' => ['auth:sanctum', 'cs']], function () {
     Route::post('tolakPembayaran/{id_penjualan}', [PembayaranController::class, 'tolakPembayaran']);
     Route::get('getPembayaranPending', [PembayaranController::class, 'getPembayaranPending']);
     Route::get('getPembayaranBukanPending', [PembayaranController::class, 'getPembayaranBukanPending']);
+
+    //TRANSAKSI MERCHANDISE
+    Route::get('daftar-klaim-merchandise-all', [TransaksiMerchandiseController::class, 'index']);
+    Route::get('daftar-klaim-merchandise', [TransaksiMerchandiseController::class, 'merchBelumDiambil']);
+    Route::patch('konfirmasi-klaim-merchandise/{id}', [TransaksiMerchandiseController::class, 'updateStatusSelesai']);
+
 });
 
 Route::group(['middleware' => ['auth:sanctum', 'gudang']], function () {
