@@ -27,15 +27,15 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withSchedule(function (Schedule $schedule) {
-        // $schedule->command('app:batalkan-penjualan-expired')
-        //     ->everyMinute()
-        //     ->withoutOverlapping()
-        //     ->sendOutputTo(storage_path('logs/batal.log'))
-        //     ->emailOutputOnFailure('you@example.com'); // opsional, jika punya mail setup
-        // $schedule->command('app:pengambilan-transaksi-expired')
-        //     ->everyMinute()
-        //     ->withoutOverlapping()
-        //     ->sendOutputTo(storage_path('logs/pengambilan-expired.log'));
+        $schedule->command('app:batalkan-penjualan-expired')
+            ->everyMinute()
+            ->withoutOverlapping()
+            ->sendOutputTo(storage_path('logs/batal.log'))
+            ->emailOutputOnFailure('you@example.com'); // opsional, jika punya mail setup
+        $schedule->command('app:pengambilan-transaksi-expired')
+            ->everyMinute()
+            ->withoutOverlapping()
+            ->sendOutputTo(storage_path('logs/pengambilan-expired.log'));
         $schedule->command('app:notif-penitipan')
             ->everyMinute()
             ->withoutOverlapping()

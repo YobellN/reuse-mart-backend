@@ -25,6 +25,7 @@ use App\Http\Controllers\PembayaranController;
 use App\Http\Controllers\DetailPenjualanController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\MerchandiseController;
+use App\Http\Controllers\TopSellerController;
 use App\Http\Controllers\TransaksiMerchandiseController;
 use App\Models\Pegawai;
 use App\Models\TransaksiMerchandise;
@@ -61,6 +62,9 @@ Route::group(['middleware' => ['auth:sanctum', 'admin']], function () {
     Route::resource('organisasi', OrganisasiController::class);
     // ini reset pegawai
     Route::post('/password/reset-password-pegawai', [ResetPasswordController::class, 'resetPasswordPegawai']);
+
+    //GENERATE TOP SELLER
+    Route::get('generate-top-seller', [TopSellerController::class, 'generateTopSellerBulanLalu']);
 });
 
 Route::group(['middleware' => ['auth:sanctum', 'owner']], function () {
@@ -190,6 +194,11 @@ Route::group(['middleware' => ['auth:sanctum', 'penitip']], function () {
 Route::group(['middleware' => ['auth:sanctum', 'organisasi']], function () {
     Route::resource('request-donasi', RequestDonasiController::class);
 });
+
+//BAGIAN TAMPIL TOP SELLER
+Route::get('top-seller-all', [TopSellerController::class, 'index']);
+Route::get('top-seller', [TopSellerController::class, 'topSellerBulanLalu']);
+
 
 Route::resource('/produk', ProdukController::class);
 Route::get('produk/getAllProduk', [ProdukController::class, 'getAllProduk']);
