@@ -48,30 +48,6 @@ class LaporanController
         $tahun = $request->input('tahun') ?? date('Y');
         $bulan = $request->input('bulan') ?? date('m');
 
-        // $data = DB::select(
-        //     "
-        //     SELECT 
-        //         produk.id_produk,
-        //         produk.nama_produk,
-        //         p.id_penitip,
-        //         u.nama AS nama_penitip,
-        //         pt.tanggal_penitipan,
-        //         pt.tenggat_penitipan,
-        //         pt.tenggat_pengambilan
-        //     FROM produk
-        //     JOIN detail_penitipan dp ON produk.id_produk = dp.id_produk
-        //     JOIN penitipan pt ON dp.id_penitipan = pt.id_penitipan
-        //     JOIN penitip p ON pt.id_penitip = p.id_penitip
-        //     JOIN user u ON p.id_user = u.id_user
-        //     WHERE YEAR(pt.tenggat_penitipan) = ?
-        //     AND MONTH(pt.tenggat_penitipan) = ?
-        //     AND pt.tenggat_penitipan < NOW()
-        //     AND (
-        //         produk.status_akhir_produk = 'Tidak Laku'
-        //         OR produk.status_akhir_produk IS NULL)",
-        //     [$tahun, $bulan]
-        // );
-
         $data = DB::select(
             "
             SELECT 
@@ -89,9 +65,32 @@ class LaporanController
             JOIN user u ON p.id_user = u.id_user
             WHERE YEAR(pt.tenggat_penitipan) = ?
             AND MONTH(pt.tenggat_penitipan) = ?
-            AND pt.tenggat_penitipan < NOW()",
+            AND pt.tenggat_penitipan < NOW()
+            AND (
+                produk.status_akhir_produk = 'Tidak Laku')",
             [$tahun, $bulan]
         );
+
+        // $data = DB::select(
+        //     "
+        //     SELECT 
+        //         produk.id_produk,
+        //         produk.nama_produk,
+        //         p.id_penitip,
+        //         u.nama AS nama_penitip,
+        //         pt.tanggal_penitipan,
+        //         pt.tenggat_penitipan,
+        //         pt.tenggat_pengambilan
+        //     FROM produk
+        //     JOIN detail_penitipan dp ON produk.id_produk = dp.id_produk
+        //     JOIN penitipan pt ON dp.id_penitipan = pt.id_penitipan
+        //     JOIN penitip p ON pt.id_penitip = p.id_penitip
+        //     JOIN user u ON p.id_user = u.id_user
+        //     WHERE YEAR(pt.tenggat_penitipan) = ?
+        //     AND MONTH(pt.tenggat_penitipan) = ?
+        //     AND pt.tenggat_penitipan < NOW()",
+        //     [$tahun, $bulan]
+        // );
 
         return response()->json([
             'message' => 'Laporan Barang Hangus',
