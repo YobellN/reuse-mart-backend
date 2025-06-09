@@ -80,6 +80,9 @@ Route::group(['middleware' => ['auth:sanctum', 'owner']], function () {
     Route::get('getIdPenitipTerakhir', [PenitipController::class, 'getIdPenitipTerakhir']);
     Route::get('getLaporanPenitip', [PenitipController::class, 'getLaporanPenitip']);
     Route::get('tahunTerlamaDonasi', [DonasiController::class, 'tahunTerlama']);
+    Route::get('laporan-penjualan-kotor-bulanan', [LaporanController::class, 'laporanPenjualanKotorBulanan']);
+    Route::get('laporan-komisi-produk', [LaporanController::class, 'laporanKomisiProduk']);
+    Route::get('laporan-stok-gudang', [LaporanController::class, 'laporanStokGudang']);
 
 });
 

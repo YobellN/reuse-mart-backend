@@ -64,4 +64,104 @@ class LaporanController
             'data' => $data
         ]);
     }
+
+    public function laporanPenjualanKotorBulanan(Request $request)
+    {
+        $tahun = $request->input('tahun') ?? date('Y');
+
+        $data = DB::select("
+            SELECT 
+                MONTHNAME(pj.tanggal_penjualan) AS bulan,
+                COUNT(dp.id_produk) AS jumlah_barang_terjual,
+                SUM(pr.harga_produk) AS jumlah_penjualan_kotor
+            FROM penjualan pj
+            JOIN detail_penjualan dp ON pj.id_penjualan = dp.id_penjualan
+            JOIN produk pr ON dp.id_produk = pr.id_produk
+            WHERE pj.status_penjualan = 'Selesai'
+              AND YEAR(pj.tanggal_penjualan) = ?
+            GROUP BY MONTH(pj.tanggal_penjualan), MONTHNAME(pj.tanggal_penjualan)
+            ORDER BY MONTH(pj.tanggal_penjualan)
+        ", [$tahun]);
+
+        return response()->json([
+            'message' => 'Laporan Penjualan Kotor Bulanan',
+            'data' => $data,
+            'tahun' => $tahun
+        ]);
+    }
+
+    public function laporanKomisiProduk(Request $request)
+    {
+        $tahun = $request->input('tahun') ?? date('Y');
+        $bulan = $request->input('bulan') ?? date('m');
+
+        $data = DB::select(
+            "
+            SELECT 
+                pr.id_produk AS kodeProduk,
+                pr.nama_produk AS namaProduk,
+                CAST(pr.harga_produk AS FLOAT) AS hargaJual,
+                DATE_FORMAT(pnt.tanggal_penitipan, '%Y-%m-%d') AS tanggalMasuk,
+                DATE_FORMAT(pn.tanggal_penjualan, '%Y-%m-%d') AS tanggalLaku,
+                COALESCE(CAST(k.komisi_hunter AS FLOAT), 0) AS komisiHunter,
+                COALESCE(CAST(k.komisi_perusahaan AS FLOAT), 0) AS komisiReuseMart,
+                COALESCE(CAST(k.bonus_penitip AS FLOAT), 0) AS bonusPenitip
+            FROM komisi k
+            JOIN detail_penjualan dp ON k.id_detail_penjualan = dp.id_detail_penjualan
+            JOIN penjualan pn ON dp.id_penjualan = pn.id_penjualan
+            JOIN produk pr ON dp.id_produk = pr.id_produk
+            JOIN detail_penitipan dpt ON pr.id_produk = dpt.id_produk
+            JOIN penitipan pnt ON dpt.id_penitipan = pnt.id_penitipan
+            WHERE MONTH(pn.tanggal_penjualan) = ?
+            AND YEAR(pn.tanggal_penjualan) = ?
+            AND pn.status_penjualan = 'Selesai'
+            ORDER BY pn.tanggal_penjualan
+            ",
+            [$bulan, $tahun]
+        );
+
+        return response()->json([
+            'message' => 'Laporan Komisi Bulanan per Produk',
+            'data' => $data
+        ]);
+    }
+
+   public function laporanStokGudang()
+    {
+        $data = DB::select(
+            "
+            SELECT 
+                pr.id_produk AS kodeProduk,
+                pr.nama_produk AS namaProduk,
+                p.id_penitip AS idPenitip,
+                u.nama AS namaPenitip,
+                DATE_FORMAT(pn.tanggal_penitipan, '%Y-%m-%d') AS tanggalMasuk,
+                CASE
+                    WHEN pn.status_perpanjangan = 1 THEN 'Ya'
+                    ELSE 'Tidak'
+                END AS perpanjangan,
+                COALESCE(pn.id_hunter, 'Tidak ada hunter') AS idHunter,
+                COALESCE(upg.nama, 'Tidak ada hunter') AS namaHunter,
+                CAST(pr.harga_produk AS FLOAT) AS hargaProduk
+            FROM produk pr
+            JOIN detail_penitipan dpt ON pr.id_produk = dpt.id_produk
+            JOIN penitipan pn ON dpt.id_penitipan = pn.id_penitipan
+            LEFT JOIN pegawai pg ON pn.id_hunter = pg.id_pegawai
+            LEFT JOIN user upg ON pg.id_user = upg.id_user
+            JOIN penitip p ON p.id_penitip = pn.id_penitip
+            JOIN user u ON p.id_user = u.id_user
+            WHERE pr.status_akhir_produk IS NULL
+            AND pn.tanggal_penitipan <= CURDATE()
+            ORDER BY pn.tanggal_penitipan
+            "
+        );
+
+        return response()->json([
+            'message' => 'Laporan Stok Gudang Hari Ini',
+            'data' => $data
+        ]);
+    }
+
+
+
 }
