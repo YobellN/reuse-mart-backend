@@ -80,6 +80,9 @@ Route::group(['middleware' => ['auth:sanctum', 'owner']], function () {
     Route::get('getIdPenitipTerakhir', [PenitipController::class, 'getIdPenitipTerakhir']);
     Route::get('getLaporanPenitip', [PenitipController::class, 'getLaporanPenitip']);
     Route::get('tahunTerlamaDonasi', [DonasiController::class, 'tahunTerlama']);
+    Route::get('laporan-penjualan-kotor-bulanan', [LaporanController::class, 'laporanPenjualanKotorBulanan']);
+    Route::get('laporan-komisi-produk', [LaporanController::class, 'laporanKomisiProduk']);
+    Route::get('laporan-stok-gudang', [LaporanController::class, 'laporanStokGudang']);
 
 });
 
@@ -107,6 +110,12 @@ Route::group(['middleware' => ['auth:sanctum', 'cs']], function () {
     Route::post('tolakPembayaran/{id_penjualan}', [PembayaranController::class, 'tolakPembayaran']);
     Route::get('getPembayaranPending', [PembayaranController::class, 'getPembayaranPending']);
     Route::get('getPembayaranBukanPending', [PembayaranController::class, 'getPembayaranBukanPending']);
+
+    //TRANSAKSI MERCHANDISE
+    Route::get('daftar-klaim-merchandise-all', [TransaksiMerchandiseController::class, 'index']);
+    Route::get('daftar-klaim-merchandise', [TransaksiMerchandiseController::class, 'merchBelumDiambil']);
+    Route::patch('konfirmasi-klaim-merchandise/{id}', [TransaksiMerchandiseController::class, 'updateStatusSelesai']);
+
 });
 
 Route::group(['middleware' => ['auth:sanctum', 'gudang']], function () {

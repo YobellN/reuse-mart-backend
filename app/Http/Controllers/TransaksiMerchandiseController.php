@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Merchandise;
 use App\Models\TransaksiMerchandise;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 
 class TransaksiMerchandiseController
 {
@@ -13,7 +14,24 @@ class TransaksiMerchandiseController
      */
     public function index()
     {
-        //
+        $transaksiMerchandise = TransaksiMerchandise::with('merchandise', 'pembeli', 'pembeli.user')->get();
+
+        return response()->json([
+            'message' => 'Data Transaksi Merchandise',
+            'data' => $transaksiMerchandise
+        ], 200);
+    }
+
+    public function merchBelumDiambil()
+    {
+        $transaksiMerchandise = TransaksiMerchandise::with('merchandise', 'pembeli', 'pembeli.user')
+        ->where('status_transaksi', 'Diproses')
+        ->get();
+
+        return response()->json([
+            'message' => 'Data Transaksi Merchandise',
+            'data' => $transaksiMerchandise
+        ], 200);
     }
 
     /**
@@ -62,6 +80,25 @@ class TransaksiMerchandiseController
         ]);
 
         return response()->json(['message' => 'Berhasil klaim merchandise'], 201);
+    }
+
+    public function updateStatusSelesai(string $id)
+    {
+        $transaksi = TransaksiMerchandise::find($id);
+
+        if (!$transaksi) {
+            return response()->json(['message' => 'Transaksi merchandise tidak ditemukan'], 404);
+        }
+
+        $transaksi->update([
+            'status_transaksi' => 'Selesai',
+            'tanggal_pengambilan' => Carbon::now(),
+        ]);
+
+        return response()->json([
+            'message' => 'Transaksi berhasil diperbarui menjadi selesai',
+            'data' => $transaksi,
+        ]);
     }
 
     /**

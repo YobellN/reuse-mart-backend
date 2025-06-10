@@ -15,6 +15,7 @@ class TransaksiMerchandise extends Model
         'id_merchandise',
         'tanggal_transaksi',
         'status_transaksi',
+        'tanggal_pengambilan',
     ];
 
     public function merchandise()
