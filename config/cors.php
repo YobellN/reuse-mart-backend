@@ -19,7 +19,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['*', 'http://localhost:3000', 'https://reuse-mart-frontend-production.up.railway.app', 'https://www.reuse-mart.my.id', 'orange-ground-00ee86f00.6.azurestaticapps.net'],
+    'allowed_origins' => ['*', 'http://localhost:3000', 'https://reuse-mart-frontend-production.up.railway.app', 'https://www.reuse-mart.my.id', 'https://orange-ground-00ee86f00.6.azurestaticapps.net'],
 
     'allowed_origins_patterns' => [],
 
