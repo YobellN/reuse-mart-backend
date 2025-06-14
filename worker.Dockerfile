@@ -1,10 +1,8 @@
-FROM dunglas/frankenphp:php8.3
-
-ENV SERVER_NAME=":80"
+FROM php:8.3-cli
 
 WORKDIR /app
 
-COPY . /app
+COPY --chown=www-data:www-data . /app
 
 RUN apt update && apt install -y \
     zip libzip-dev \
@@ -14,6 +12,7 @@ RUN apt update && apt install -y \
     libssl-dev \
     && docker-php-ext-install \
     zip \
+    pcntl \
     curl \
     mbstring \
     pdo \
@@ -28,9 +27,15 @@ RUN apt update && apt install -y \
     xml \
     bcmath
 
+
 COPY --from=composer:2.2 /usr/bin/composer /usr/bin/composer
 
-RUN composer install
+RUN composer install && \
+    composer require laravel/octane && \
+    php artisan octane:install --server=frankenphp 
 
-# Pastikan storage link dibuat
-RUN mkdir -p storage/app/public && php artisan storage:link
+RUN php artisan storage:link
+
+EXPOSE 8000
+
+CMD php artisan octane:start --server=frankenphp --host=0.0.0.0 --port=8000

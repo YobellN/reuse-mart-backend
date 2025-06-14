@@ -16,14 +16,15 @@ class Pegawai extends Model
         'id_jabatan',
         'nip',
         'tanggal_lahir',
-        'komisi',
+        'total_komisi',
     ];
 
     public $timestamps = false;
     public $incrementing = false;
 
     protected $casts = [
-        'id_pegawai' => 'string'
+        'id_pegawai' => 'string',
+        'total_komisi' => 'float',
     ];
 
     public function user() {

@@ -40,4 +40,10 @@ class Penitip extends Model
     {
         return $this->belongsTo(User::class, 'id_user');
     }
+
+    public function topSeller()
+    {
+        return $this->hasMany(TopSeller::class, 'id_penitip', 'id_penitip');
+    }
+
 }

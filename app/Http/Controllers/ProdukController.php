@@ -17,6 +17,7 @@ class ProdukController
         $kategori = $request->query('kategori');
         $limit = $request->query('limit');
         $status_akhir_produk = $request->query('status_akhir_produk');
+        $search = $request->query('search');
 
         if (!$limit || !is_numeric($limit) || $limit < 1) {
             $limit = 10;
@@ -25,7 +26,7 @@ class ProdukController
         $produk = Produk::with([
             'kategori',
             'detailPenitipan.penitipan.penitip.user',
-            'fotoProduk'
+            'fotoProduk' => fn($q) => $q->orderBy('thumbnail', 'desc')
         ])
             ->when($kategori, fn($q) => $q->whereHas('kategori', fn($q2) => $q2->where('nama_kategori', $kategori)))
             ->when(
@@ -33,6 +34,7 @@ class ProdukController
                 fn($q) => $q->where('status_akhir_produk', $status_akhir_produk),
                 fn($q) => $q->whereNull('status_akhir_produk')
             )
+            ->when($search, fn($q) => $q->where('nama_produk', 'like', '%' . $search . '%'))
             ->paginate($limit);
 
         if ($produk->isEmpty()) {
@@ -135,6 +137,7 @@ class ProdukController
         ->join('detail_penitipan', 'produk.id_produk', '=', 'detail_penitipan.id_produk')
         ->join('penitipan', 'detail_penitipan.id_penitipan', '=', 'penitipan.id_penitipan')
         ->where('penitipan.id_penitip', $id)
+        ->whereNull('produk.status_akhir_produk')
         ->limit(6)->get();
 
 
@@ -156,6 +159,30 @@ class ProdukController
 
         return response()->json([
             'message' => 'Data Produk Untuk Donasi',
+            'data' => $produk
+        ]);
+    }
+
+    public function rateProdukPembelian(Request $request, string $id)
+    {
+        $produk = Produk::find($id);
+
+        if (!$produk) {
+            return response()->json([
+                'message' => 'Produk tidak ditemukan',
+            ], 404);
+        };
+
+        $request->validate([
+            'rating' => 'required|numeric|min:1|max:5'
+        ]);
+
+        $produk->rating = $request->rating;
+        $produk->save();
+
+        return response()->json([
+            'status_code' => 200,
+            'message' => 'Rating Produk Berhasil',
             'data' => $produk
         ]);
     }

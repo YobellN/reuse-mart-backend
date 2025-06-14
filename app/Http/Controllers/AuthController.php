@@ -200,4 +200,71 @@ class AuthController
             ],
         ], 201);
     }
+
+    public function loginMobile(Request $request)
+    {
+
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|exists:user',
+            'password' => 'required',
+            'fcmToken' => 'required'
+        ], [
+            'email.required' => 'Email tidak boleh kosong',
+            'email.email' => 'Email tidak valid',
+            'email.exists' => 'Email tidak terdaftar',
+            'password.required' => 'Password tidak boleh kosong',
+            'fcmToken.required' => 'FCM Token tidak boleh kosong',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => "validasi gagal",
+                'errors' => $validator->errors()
+            ], 422, ['Content-Type' => 'application/json']);
+        }
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!Hash::check($request->password, $user->password)) {
+            return response()->json([
+                'message' => 'validasi gagal',
+                'errors' => 'password salah'
+            ], 422);
+        }
+
+        // tambahan khusus mobile, mengecek user hanya antara Pembeli, Penitip, Kurir, Hunter
+        if ($user->role != 'Pembeli' && $user->role != 'Penitip' && $user->role != 'Kurir' && $user->role != 'Hunter') {
+            return response()->json([
+                'message' => 'validasi gagal',
+                'errors' => 'Role tidak sesuai'
+            ], 422);
+        }
+
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        $user->update([
+            'fcm_token' => $request->fcmToken,
+        ]);
+        
+        return response()->json([
+            'message' => 'Berhasil login',
+            'data' => [
+                'user' => $user,
+                'access_token' => $token
+            ],
+        ], 200);
+    }
+
+    // update fcm token dari flutter
+    public function updateFCMToken(Request $request)
+    {
+        $user = $request->user();
+        $user->update([
+            'fcm_token' => $request->fcm_token,
+        ]);
+        return response()->json([
+            'message' => 'FCM token berhasil diupdate',
+            'data' => $user,
+        ], 200);
+    }
 }
