@@ -20,3 +20,5 @@ yarn-error.log
 /.vscode
 /.zed
 .env.prod
+!storage/app/firebase-service-account.json
+!storage/app/private/DigiCertGlobalRootCA.crt.pem
