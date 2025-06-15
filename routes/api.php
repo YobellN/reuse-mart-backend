@@ -1,34 +1,35 @@
 <?php
 
+use App\Models\Pegawai;
 use Illuminate\Http\Request;
+use App\Models\TransaksiMerchandise;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\NotifController;
+use App\Http\Controllers\AlamatController;
+use App\Http\Controllers\DonasiController;
 use App\Http\Controllers\ProdukController;
+use App\Http\Controllers\DiskusiController;
 use App\Http\Controllers\JabatanController;
+use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\PegawaiController;
+use App\Http\Controllers\PembeliController;
 use App\Http\Controllers\PenitipController;
+use App\Http\Controllers\KategoriController;
+use App\Http\Controllers\KeranjangController;
 use App\Http\Controllers\PenitipanController;
 use App\Http\Controllers\PenjualanController;
-use App\Http\Controllers\RequestDonasiController;
-use App\Http\Controllers\DonasiController;
-use App\Http\Controllers\ResetPasswordController;
-use App\Http\Controllers\OrganisasiController;
-use App\Http\Controllers\AlamatController;
-use App\Http\Controllers\DiskusiController;
-use App\Http\Controllers\KategoriController;
-use App\Http\Controllers\NotifController;
-use App\Http\Controllers\KeranjangController;
-use App\Http\Controllers\DetailKeranjangController;
-use App\Http\Controllers\PengirimanController;
-use App\Http\Controllers\PembeliController;
-use App\Http\Controllers\PembayaranController;
-use App\Http\Controllers\DetailPenjualanController;
-use App\Http\Controllers\LaporanController;
-use App\Http\Controllers\MerchandiseController;
 use App\Http\Controllers\TopSellerController;
+use App\Http\Controllers\OrganisasiController;
+use App\Http\Controllers\PembayaranController;
+use App\Http\Controllers\PengirimanController;
+use App\Http\Controllers\MerchandiseController;
+use App\Http\Controllers\RequestDonasiController;
+use App\Http\Controllers\ResetPasswordController;
+use App\Http\Controllers\DetailKeranjangController;
+use App\Http\Controllers\DetailPenjualanController;
 use App\Http\Controllers\TransaksiMerchandiseController;
-use App\Models\Pegawai;
-use App\Models\TransaksiMerchandise;
 // use Symfony\Component\HttpKernel\DataCollector\RequestDataCollector;
 // use Symfony\Component\HttpKernel\DataCollector\RequestDataCollector;
 
@@ -224,3 +225,12 @@ Route::get('komisi/{id}', [PenjualanController::class,  'tesKomisi']);
 Route::post('update-all-komisi', [PenjualanController::class, 'updateAllKomisi']);
 Route::get('tes-tambah-saldo', [PenjualanController::class, 'tesTambahSaldo']);
 Route::get('tes-tambah-poin', [PenjualanController::class, 'tesTambahPoin']);
+
+Route::get('/test-azure', function () {
+    try {
+        Storage::disk('azure')->put('test-azure.txt', 'Hello from Laravel Azure!');
+        return '✅ Azure test file uploaded successfully!';
+    } catch (\Exception $e) {
+        return '❌ Error: ' . $e->getMessage();
+    }
+});

@@ -1,4 +1,3 @@
-version: '3'
 services:
     reuse_mart_franken:
         container_name: reuse_mart_franken

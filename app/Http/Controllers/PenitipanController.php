@@ -154,12 +154,12 @@ class PenitipanController
                     }
 
                     $file_name = $id_produk . '_' . ($i + 1) . '.' . $file->getClientOriginalExtension();
-                    $path = $file->storeAs('foto_produk', $file_name, 'public');
+                    $path = Storage::disk('azure')->putFileAs('foto-produk', $file, $file_name);
 
                     FotoProduk::create(
                         [
                             'id_produk' => $produk->id_produk,
-                            'path_foto' => str_replace('foto_produk/', '', $path),
+                            'path_foto' => $path,
                             'thumbnail' => $i === 0 ? 1 : 0,
                         ]
                     );
@@ -214,6 +214,7 @@ class PenitipanController
         DB::beginTransaction();
 
         try {
+            Log::info($request);
             $request->validate([
                 'id_penitip' => 'sometimes|exists:penitip,id_penitip',
                 'id_qc' => 'sometimes|exists:pegawai,id_pegawai',
@@ -226,8 +227,9 @@ class PenitipanController
                 'produk.*.harga_produk' => 'sometimes|numeric',
                 'produk.*.waktu_garansi' => 'nullable|date',
                 'produk.*.foto_produk' => 'sometimes|array|min:2|max:10',
-                'produk.*.foto_produk.*.path_foto' => 'required|file|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+                // 'produk.*.foto_produk.*.path_foto' => 'nullable|file|image|mimes:jpeg,png,jpg,gif,svg,webp',
             ]);
+
 
             $penitipan = Penitipan::findOrFail($id_penitipan);
 
@@ -265,7 +267,7 @@ class PenitipanController
 
                         if (isset($item['foto_produk']) && is_array($item['foto_produk'])) {
                             foreach ($produk->fotoProduk as $foto) {
-                                Storage::disk('public')->delete('foto_produk/' . $foto->path_foto);
+                                Storage::disk('azure')->delete($foto->path_foto);
                                 $foto->delete();
                             }
 
@@ -279,11 +281,11 @@ class PenitipanController
                                 }
 
                                 $file_name = $produk->id_produk . '_' . ($i + 1) . '.' . $foto['path_foto']->getClientOriginalExtension();
-                                $path = $foto['path_foto']->storeAs('foto_produk', $file_name, 'public');
+                                $path = Storage::disk('azure')->putFileAs('foto-produk', $foto['path_foto'], $file_name);
 
                                 FotoProduk::create([
                                     'id_produk' => $produk->id_produk,
-                                    'path_foto' => str_replace('foto_produk/', '', $path),
+                                    'path_foto' => $path,
                                     'thumbnail' => $i === 0 ? 1 : 0,
                                 ]);
                             }
@@ -300,6 +302,7 @@ class PenitipanController
             ], 200);
         } catch (\Exception $e) {
             DB::rollBack();
+
             return response()->json([
                 'message' => 'Gagal: ' . $e->getMessage()
             ], 500);

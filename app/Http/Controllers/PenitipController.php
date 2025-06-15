@@ -70,9 +70,10 @@ class PenitipController
         }
 
         $file = $request->file('foto_ktp');
-        $file_name = $request->nik .  '_' . time() . '.' . $file->getClientOriginalExtension();
+        $file_name = $request->nik . '_' . time() . '.' . $file->getClientOriginalExtension();
+        $folder = 'foto-ktp';
 
-        $path = $file->storeAs('foto_ktp', $file_name, 'public');
+        Storage::disk('azure')->putFileAs($folder, $file, $file_name);
 
         $user = User::create([
             'nama' => $request->nama,
@@ -85,7 +86,7 @@ class PenitipController
         $penitip = Penitip::create([
             'id_user' => $user->id_user,
             'nik' => $request->nik,
-            'foto_ktp' => str_replace('foto_ktp/', '', $path),
+            'foto_ktp' => $folder . '/' . $file_name,
         ]);
 
         return response()->json([
@@ -229,15 +230,17 @@ class PenitipController
         $user->save();
 
         if ($request->hasFile('foto_ktp')) {
-            if ($penitip->foto_ktp && Storage::disk('public')->exists('foto_ktp/' . $penitip->foto_ktp)) {
-                Storage::disk('public')->delete('foto_ktp/' . $penitip->foto_ktp);
+            if ($penitip->foto_ktp && Storage::disk('azure')->exists($penitip->foto_ktp)) {
+                Storage::disk('azure')->delete($penitip->foto_ktp);
             }
 
             $file = $request->file('foto_ktp');
             $filename = ($request->nik ?? $penitip->nik) . '_' . time() . '.' . $file->getClientOriginalExtension();
-            $file->storeAs('foto_ktp', $filename, 'public');
 
-            $penitip->foto_ktp = $filename;
+            $folder = 'foto-ktp';
+            Storage::disk('azure')->putFileAs($folder, $file, $filename);
+
+            $penitip->foto_ktp = $folder . '/' . $filename;
         }
 
         $penitip->nik = $request->nik ?? $penitip->nik;
@@ -266,8 +269,8 @@ class PenitipController
             ]);
         }
 
-        if ($penitip->foto_ktp && Storage::disk('public')->exists('foto_ktp/' . $penitip->foto_ktp)) {
-            Storage::disk('public')->delete('foto_ktp/' . $penitip->foto_ktp);
+        if ($penitip->foto_ktp && Storage::disk('azure')->exists($penitip->foto_ktp)) {
+            Storage::disk('azure')->delete($penitip->foto_ktp);
         }
 
         $penitip->delete();
@@ -320,7 +323,7 @@ class PenitipController
     //     ], 200);
     // }
 
-    public function getPenitip(Request $request) 
+    public function getPenitip(Request $request)
     {
         $user = $request->user();
 
@@ -334,14 +337,14 @@ class PenitipController
         }
 
         $avgRating = Produk::join('detail_penitipan', 'produk.id_produk', '=', 'detail_penitipan.id_produk')
-            ->join('penitipan','detail_penitipan.id_penitipan', '=', 'penitipan.id_penitipan')
+            ->join('penitipan', 'detail_penitipan.id_penitipan', '=', 'penitipan.id_penitipan')
             ->where('penitipan.id_penitip', $penitip->id_penitip)
             ->avg('produk.rating');
 
         $avgRating = $avgRating ? round((float)$avgRating, 2) : null;
 
         $totalProduk = Produk::join('detail_penitipan', 'produk.id_produk', '=', 'detail_penitipan.id_produk')
-            ->join('penitipan','detail_penitipan.id_penitipan', '=', 'penitipan.id_penitipan')
+            ->join('penitipan', 'detail_penitipan.id_penitipan', '=', 'penitipan.id_penitipan')
             ->where('penitipan.id_penitip', $penitip->id_penitip)
             ->count();
 
@@ -428,8 +431,8 @@ class PenitipController
         $lastPenitip = Penitip::orderByDesc('id_penitip')->first();
         if (!$lastPenitip) {
             return response()->json([
-            'message' => 'Tidak ada data penitip',
-            'data' => null,
+                'message' => 'Tidak ada data penitip',
+                'data' => null,
             ]);
         }
 

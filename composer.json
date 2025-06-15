@@ -12,6 +12,8 @@
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.10.1",
+        "matthewbdaly/laravel-azure-storage": "^2.0",
+        "microsoft/azure-storage-blob": "^1.5",
         "omaressaouaf/laravel-id-generator": "^1.2"
     },
     "require-dev": {
