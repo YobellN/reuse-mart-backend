@@ -46,3 +46,5 @@ RUN chown -R www-data:www-data storage bootstrap/cache \
 
 # Storage symlink
 RUN php artisan storage:link
+
+CMD ["frankenphp", "--document-root=public", "--worker=/app/public/index.php"]
