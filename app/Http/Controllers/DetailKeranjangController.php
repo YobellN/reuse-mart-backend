@@ -288,13 +288,6 @@ class DetailKeranjangController
                 return $item->produk->harga_produk ?? 0;
             });
 
-            // menghitung poin yang diperoleh dari total harga
-            // 1 poin = 10.000, bonus 20% jika > 500.000
-            $poin = floor($totalHarga / 10000);
-            if ($totalHarga > 500000) {
-                $poin += floor($poin * 0.2); // bonus 20%
-            }
-
             // menghitung ongkir jika metode pengambilan adalah Antar Kurir
             $ongkir = 0;
             if ($metodePengambilan === 'Antar Kurir') {
@@ -305,6 +298,13 @@ class DetailKeranjangController
             // mengurangkan poinKepakai dari totalHarga jika ada
             $diskon = $poinKepakai * 100; // 1 poin = 100 diskon
             $totalHargaSetelahDiskon = max($totalHarga - $diskon, 0); // jaga-jaga agar tidak minus
+
+            // menghitung poin yang diperoleh dari total harga setelah diskon
+            // 1 poin = 10.000, bonus 20% jika > 500.000
+            $poin = floor($totalHargaSetelahDiskon / 10000);
+            if ($totalHargaSetelahDiskon > 500000) {
+                $poin += floor($poin * 0.2); // bonus 20%
+            }
 
             // total akhir termasuk ongkir
             $totalAkhir = $totalHargaSetelahDiskon + $ongkir;
