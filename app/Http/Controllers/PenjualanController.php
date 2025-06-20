@@ -298,7 +298,10 @@ class PenjualanController
         return response()->json([
             'status' => 'success',
             'message' => 'Tagihan pembayaran',
-            'data' => $penjualan->total_harga
+            'data' => [
+                'total_harga' => $penjualan->total_harga,
+                'tenggat_pembayaran' => $penjualan->tenggat_pembayaran,
+            ]
         ], 200);
     }
 
