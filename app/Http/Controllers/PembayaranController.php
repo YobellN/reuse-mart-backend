@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\Pembayaran;
-use App\Models\Keranjang;
-use App\Models\DetailKeranjang;
-use App\Models\DetailPenjualan;
-use App\Models\Penjualan;
 use App\Models\Produk;
 use App\Models\Pembeli;
+use App\Models\Keranjang;
+use App\Models\Penjualan;
+use App\Models\Pembayaran;
 use App\Services\FcmChannel;
+use Illuminate\Http\Request;
+use App\Models\DetailKeranjang;
+use App\Models\DetailPenjualan;
+use Illuminate\Support\Facades\Storage;
 
 class PembayaranController
 {
@@ -74,17 +75,17 @@ class PembayaranController
             ], 422);
         }
 
-        // Simpan file ke storage/app/public/bukti_pembayaran
+        
         $file = $request->file('bukti_pembayaran');
-        $fileName = $request->id_penjualan . '_' . time() . '.' . $file->getClientOriginalExtension();
-        $path = $file->storeAs('bukti_pembayaran', $fileName, 'public');
+        $file_name = $request->id_penjualan . '_' . time() . '.' . $file->getClientOriginalExtension();
+        $path = Storage::disk('azure')->putFileAs('bukti_pembayaran', $file, $file_name);
 
         $pembayaran = Pembayaran::create([
             'id_penjualan' => $request->id_penjualan,
             'tanggal_pembayaran' => now(),
             'metode_pembayaran' => $request->metode_pembayaran,
             'status_pembayaran' => 'Pending',
-            'bukti_pembayaran' => $fileName // hanya simpan nama file
+            'bukti_pembayaran' => $path // hanya simpan nama file
         ]);
 
         // aslinya komenku panjang, tapi andaikan aku butuh baca ulang, intinya disini:
