@@ -191,6 +191,12 @@ Route::group(['middleware' => ['auth:sanctum', 'pembeli']], function () {
 
     Route::get('merchandise', [MerchandiseController::class, 'index']);
     Route::post('transaksi-merchandise/{id}', [TransaksiMerchandiseController::class, 'store']);
+
+    // Pembeli responsi:
+    Route::get('getPenjualanDisiapkan', [PenjualanController::class, 'getPenjualanDisiapkan']);
+    // POST batalkanPenjualan
+    Route::post('batalkanPenjualan/{id_penjualan}', [PenjualanController::class, 'batalkanPenjualan']);
+
 });
 
 Route::group(['middleware' => ['auth:sanctum', 'penitip']], function () {

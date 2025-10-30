@@ -421,4 +421,93 @@ class PenjualanController
             'komisi' => $komisi
         ], 200);
     }
+
+    // Mengambil data penjualan berdasarkan Pembeli dan statusnya "Disiapkan" serta jadwal pengambilannya null
+    // serta belum ada jadwal pengiriman (cari juga table pengiriman, dengan id_penjualannya yg sama, cek jadwal_pengiriman null)
+    public function getPenjualanDisiapkan(Request $request)
+    {
+        $user = $request->user();
+        if ($user->role !== 'Pembeli') {
+            return response()->json([
+                'message' => 'Hanya pembeli yang dapat mengakses data ini',
+            ], 403);
+        }
+
+        $pembeli = $user->pembeli;
+        if (!$pembeli) {
+            return response()->json([
+                'message' => 'Pembeli tidak ditemukan',
+            ], 404);
+        }
+
+        $penjualan = Penjualan::where('id_pembeli', $pembeli->id_pembeli)
+            ->where(function ($query) {
+                $query->where('status_penjualan', 'Disiapkan')
+                    ->orWhere('status_penjualan', 'dibatalkan pembeli');
+            })
+            ->whereNull('jadwal_pengambilan')
+            ->with(['pengiriman' => function ($query) {
+                $query->whereNull('jadwal_pengiriman');
+            }])
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'id_penjualan' => $item->id_penjualan,
+                    'tanggal_penjualan' => $item->tanggal_penjualan,
+                    'total_harga' => $item->total_harga,
+                    'status_penjualan' => $item->status_penjualan
+                ];
+            });
+
+        return response()->json([
+            'message' => 'Data penjualan disiapkan',
+            'data' => $penjualan
+        ], 200);
+    }
+
+    // mengambil id penjualan dan mengubah status penjualan tersebut menjadi dibatalkan pembeli
+    public function batalkanPenjualan(Request $request, string $id)
+    {
+        $user = $request->user();
+        if ($user->role !== 'Pembeli') {
+            return response()->json([
+                'message' => 'Hanya pembeli yang dapat membatalkan penjualan',
+            ], 403);
+        }
+
+        $pembeli = $user->pembeli;
+        if (!$pembeli) {
+            return response()->json([
+                'message' => 'Pembeli tidak ditemukan',
+            ], 404);
+        }
+
+        $penjualan = Penjualan::where('id_penjualan', $id)->first();
+        if (!$penjualan) {
+            return response()->json([
+                'message' => 'Penjualan tidak ditemukan',
+            ], 404);
+        }
+
+        $penjualan->status_penjualan = 'dibatalkan pembeli';
+        $penjualan->save();
+
+        // Mengembalikan saldo dalam bentuk poin (10000 saldo = 1 poin untuk pembeli)
+        $poinDikembalikan = floor($penjualan->total_harga / 10000);
+        $pembeli->poin += $poinDikembalikan;
+        $pembeli->save();
+
+        // mengembalikan status barang menjadi tersedia (stok jadi 1) dan status_akhir_produk menjadi null
+        $detailPenjualan = DetailPenjualan::where('id_penjualan', $penjualan->id_penjualan)->get();
+        foreach ($detailPenjualan as $detail) {
+            $produk = $detail->produk;
+            $produk->status_ketersediaan = 1; // mengembalikan stok menjadi 1
+            $produk->status_akhir_produk = null; // mengembalikan status akhir produk
+            $produk->save();
+        }
+
+        return response()->json([
+            'message' => 'Penjualan berhasil dibatalkan',
+        ], 200);
+    }
 }
