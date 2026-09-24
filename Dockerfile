@@ -7,8 +7,8 @@ WORKDIR /app
 # Copy source Laravel ke /app
 COPY . /app
 
-# Copy SSL certificate used by the database client.
-COPY ./storage/app/private/DigiCertGlobalRootCA.crt.pem /app/storage/app/private/DigiCertGlobalRootCA.crt.pem
+# Copy the public CA certificate used by the database client.
+COPY ./certs/DigiCertGlobalRootCA.crt.pem /app/certs/DigiCertGlobalRootCA.crt.pem
 
 # Install dependencies OS + PHP extensions
 RUN apt update && apt install -y \

@@ -2,6 +2,11 @@
 
 use Illuminate\Support\Str;
 
+$mysqlSslCa = env('MYSQL_ATTR_SSL_CA');
+$mysqlSslCa = $mysqlSslCa && ! Str::startsWith($mysqlSslCa, '/')
+    ? storage_path($mysqlSslCa)
+    : $mysqlSslCa;
+
 return [
 
     /*
@@ -58,7 +63,7 @@ return [
             'strict' => true,
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
-                PDO::MYSQL_ATTR_SSL_CA => storage_path(env('MYSQL_ATTR_SSL_CA')),
+                PDO::MYSQL_ATTR_SSL_CA => $mysqlSslCa,
             ]) : [],
         ],
 
@@ -78,7 +83,7 @@ return [
             'strict' => true,
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
-                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+                PDO::MYSQL_ATTR_SSL_CA => $mysqlSslCa,
             ]) : [],
         ],
 
