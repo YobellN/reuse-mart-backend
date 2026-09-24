@@ -7,6 +7,9 @@ WORKDIR /app
 # Copy source Laravel ke /app
 COPY . /app
 
+# FrankenPHP/Caddy web server configuration.
+COPY ./Caddyfile /etc/caddy/Caddyfile
+
 # Copy the public CA certificate used by the database client.
 COPY ./certs/DigiCertGlobalRootCA.crt.pem /app/certs/DigiCertGlobalRootCA.crt.pem
 
@@ -46,4 +49,4 @@ RUN chown -R www-data:www-data storage bootstrap/cache \
 # Storage symlink
 RUN php artisan storage:link
 
-CMD ["frankenphp", "--document-root=public", "--worker=/app/public/index.php"]
+CMD ["frankenphp", "run", "--config", "/etc/caddy/Caddyfile"]
