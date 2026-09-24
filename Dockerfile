@@ -7,9 +7,8 @@ WORKDIR /app
 # Copy source Laravel ke /app
 COPY . /app
 
-# Copy file SSL cert dan firebase key (harus sebelum composer install)
+# Copy SSL certificate used by the database client.
 COPY ./storage/app/private/DigiCertGlobalRootCA.crt.pem /app/storage/app/private/DigiCertGlobalRootCA.crt.pem
-COPY ./storage/app/firebase-service-account.json /app/storage/app/firebase-service-account.json
 
 # Install dependencies OS + PHP extensions
 RUN apt update && apt install -y \

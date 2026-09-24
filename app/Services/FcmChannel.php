@@ -65,10 +65,21 @@ class FcmChannel
 
     private static function getAccessToken()
     {
-        $credentialsPath = storage_path('app/firebase-service-account.json');
-
         $client = new \Google_Client();
-        $client->setAuthConfig($credentialsPath);
+        $credentialsBase64 = config('services.firebase.credentials_base64');
+
+        if ($credentialsBase64) {
+            $credentials = base64_decode($credentialsBase64, true);
+
+            if ($credentials === false) {
+                throw new \RuntimeException('FIREBASE_CREDENTIALS_BASE64 is not valid base64.');
+            }
+
+            $client->setAuthConfig(json_decode($credentials, true, 512, JSON_THROW_ON_ERROR));
+        } else {
+            $client->setAuthConfig(storage_path('app/firebase-service-account.json'));
+        }
+
         $client->addScope('https://www.googleapis.com/auth/firebase.messaging');
 
         $token = $client->fetchAccessTokenWithAssertion();
